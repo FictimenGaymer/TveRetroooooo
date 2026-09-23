@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Canal Retro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --room:#1b2629; --lamp:#4a3a24;
+  --putty:#cfc2a0; --putty-hi:#e4d9bc; --putty-lo:#a09272; --putty-dk:#6f6449;
+  --glass:#0c0d0b; --amber:#ffb21f; --osd:#c9ff7a; --red:#df4a37; --ink:#2b2518;
+  --text:#ece6d4; --muted:#a9b3b0;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:'Nunito',system-ui,sans-serif; color:var(--text); min-height:100vh;
+  background:
+    radial-gradient(900px 520px at 15% -5%, var(--lamp), transparent 62%),
+    var(--room);
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #4d8dff;outline-offset:2px}
+
+.stage{max-width:1120px;margin:0 auto;padding:16px;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:920px){.stage{grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);align-items:start;padding:28px 20px}}
+
+/* ---------- Tele ---------- */
+.tv{
+  background:linear-gradient(180deg,var(--putty-hi),var(--putty) 30%,var(--putty-lo));
+  border-radius:30px 30px 22px 22px; padding:14px 16px 16px;
+  box-shadow:inset 0 2px 0 #fff8, inset 0 -7px 0 var(--putty-dk), 0 26px 44px #000a;
+}
+.brand{
+  display:block;text-align:center;margin:0 auto 10px;font-weight:800;font-size:15px;letter-spacing:.06em;
+  color:var(--putty-dk);text-shadow:0 1px 0 #fff9;
+}
+.bezel{background:var(--glass);border-radius:24px;padding:10px;box-shadow:inset 0 0 0 3px #000,inset 0 8px 16px #000c,0 1px 0 #fff8}
+.screen{
+  position:relative;aspect-ratio:16/9;background:#000;overflow:hidden;
+  border-radius:5% / 9%;box-shadow:inset 0 0 50px #000a;
+}
+.screen.lite{border-radius:0}
+.screen.lite .scan,.screen.lite #noise{display:none}
+.screen:fullscreen{border-radius:0;aspect-ratio:auto;width:100vw;height:100vh}
+.picture{position:absolute;inset:0;transform-origin:center}
+.picture iframe,.picture #yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+.shield{position:absolute;inset:0;z-index:2;cursor:pointer}
+#noise{position:absolute;inset:0;width:100%;height:100%;z-index:4;opacity:0;image-rendering:pixelated;pointer-events:none}
+.scan{
+  position:absolute;inset:0;z-index:6;pointer-events:none;mix-blend-mode:multiply;
+  background:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px),
+    radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%);
+}
+.msg{position:absolute;inset:0;z-index:5;display:none;place-items:center;text-align:center;padding:6%;background:#000e}
+.msg.show{display:grid}
+.msg h3{margin:0 0 6px;font-size:clamp(16px,3.4vw,24px)}
+.msg p{margin:0 0 14px;color:var(--muted);font-size:clamp(13px,2.4vw,16px);line-height:1.4}
+.osd{
+  position:absolute;left:4.5%;top:7%;right:4.5%;z-index:7;pointer-events:none;opacity:0;transition:opacity .2s;
+  font-family:'VT323',monospace;color:var(--osd);text-shadow:2px 2px 0 #000,0 0 6px #000;line-height:1;
+}
+.osd.show{opacity:1}
+.osd .l1{font-size:clamp(22px,5vw,44px)}
+.osd .l2{font-size:clamp(16px,3.4vw,30px);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.osd .l3{font-size:clamp(14px,2.8vw,24px);opacity:.85}
+
+.wake{
+  position:absolute;inset:0;z-index:8;display:grid;place-content:center;justify-items:center;gap:12px;
+  background:#050605;border:0;cursor:pointer;color:#c8cfc6;font-weight:700;font-size:clamp(14px,2.6vw,18px);
+}
+.wake svg{width:clamp(44px,9vw,68px);height:auto;filter:drop-shadow(0 0 10px #ff5a4566)}
+.screen.on .wake{display:none}
+.screen.boot .picture{animation:boot .55s ease-out}
+@keyframes boot{
+  0%{transform:scale(1,.004);filter:brightness(4)}
+  55%{transform:scale(1,.05);filter:brightness(3)}
+  100%{transform:scale(1,1);filter:brightness(1)}
+}
+@media(prefers-reduced-motion:reduce){.screen.boot .picture{animation:none}}
+
+/* ---------- Panel ---------- */
+.panel{display:flex;flex-wrap:wrap;align-items:center;gap:12px 14px;margin-top:14px}
+.grp{display:flex;align-items:center;gap:8px}
+.key{
+  min-width:46px;min-height:46px;padding:0 14px;border:0;border-radius:12px;cursor:pointer;font-weight:800;color:var(--ink);
+  background:linear-gradient(180deg,#efe6cb,#cbbd99);
+  box-shadow:0 4px 0 var(--putty-dk),0 6px 8px #0004;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.key:active{transform:translateY(3px);box-shadow:0 1px 0 var(--putty-dk)}
+.key svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.picture #vp{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.key[hidden]{display:none}
+.vol[hidden]{display:none}
+.clk{border:0;cursor:pointer;font-size:30px;min-width:150px}
+.clk[hidden]{display:none}
+.megaNote{flex:1 1 100%;text-align:center;color:var(--muted);font-size:13px;line-height:1.4;padding:2px 4px}
+a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;margin:0 4px}
+.picture #fbBox{position:absolute;inset:0;width:100%;height:100%;background:#000;display:none}
+#fbBox .fb-video,#fbBox .fb_iframe_widget,#fbBox .fb_iframe_widget>span,#fbBox iframe{position:absolute!important;inset:0;width:100%!important;height:100%!important;border:0}
+.key.power i{width:10px;height:10px;border-radius:50%;background:#5b2a24;box-shadow:inset 0 1px 2px #0008}
+.key.power[aria-pressed="true"] i{background:#ff5a45;box-shadow:0 0 10px #ff5a45}
+.knob{
+  width:62px;height:62px;border-radius:50%;border:0;cursor:pointer;position:relative;flex:none;
+  background:radial-gradient(circle at 35% 30%,#f3ead0,#b9aa84 70%);
+  box-shadow:0 4px 0 var(--putty-dk),0 8px 10px #0005,inset 0 0 0 4px #0001;
+  transition:transform .3s cubic-bezier(.3,1.4,.5,1);
+}
+.knob::after{content:"";position:absolute;left:50%;top:6px;width:5px;height:18px;margin-left:-2.5px;border-radius:3px;background:var(--ink)}
+.led{
+  font-family:'VT323',monospace;font-size:46px;line-height:1;color:var(--amber);background:#160f05;
+  padding:4px 14px 2px;border-radius:9px;min-width:70px;text-align:center;
+  text-shadow:0 0 10px #ffb21f99;box-shadow:inset 0 3px 8px #000,0 1px 0 #fff8;
+}
+.vol{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:800;font-size:14px}
+.vol input{width:96px;accent-color:#5a4d33}
+.spacer{flex:1 1 0}
+.transport{flex:1 1 100%;justify-content:center;flex-wrap:wrap}
+.tv[data-mode="live"] .transport{display:none}
+.key.tog[aria-pressed="true"]{background:linear-gradient(180deg,#ffe19a,#f0b23a)}
+.hint{margin:12px 2px 0;font-size:13px;color:var(--muted);line-height:1.5}
+
+/* ---------- Guía ---------- */
+.guide h2{margin:0 0 12px;font-size:20px;font-weight:800}
+.rows{display:grid;gap:8px}
+.row{
+  display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;text-align:left;cursor:pointer;
+  background:#ffffff0c;border:1px solid #ffffff1c;border-radius:12px;padding:10px 12px;
+}
+.row:hover{background:#ffffff14}
+.row[aria-current="true"]{border-color:var(--amber);background:#ffb21f18}
+.row .num{font-family:'VT323',monospace;font-size:34px;line-height:1;color:var(--amber);background:#160f05;border-radius:8px;height:40px;display:grid;place-items:center;text-shadow:0 0 8px #ffb21f88}
+.row .txt{display:grid;gap:3px;min-width:0}
+.row b{font-size:16px}
+.row .now{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row small{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:3px;background:#ffffff22;border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--amber)}
+
+.banner{grid-column:1/-1;background:#3b2f14;border:1px solid #7a6127;border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.45;display:none}
+.banner.show{display:block}
+.banner button{margin-left:8px;background:none;border:0;text-decoration:underline;cursor:pointer}
+
+/* ---------- Editor ---------- */
+dialog{
+  width:min(740px,94vw);max-height:90vh;padding:0;border:1px solid #ffffff26;border-radius:18px;
+  background:#222c2f;color:var(--text);
+}
+dialog::backdrop{background:#000a}
+.ed-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #ffffff1a;position:sticky;top:0;background:#222c2f;z-index:1}
+.ed-head h2{margin:0;font-size:20px}
+.ed-body{padding:16px 18px 22px;display:grid;gap:18px}
+.ed-body h3{margin:0 0 8px;font-size:16px}
+.ed-body p{margin:0 0 8px;color:var(--muted);font-size:14px;line-height:1.5}
+input[type=text],input[type=number],select,textarea{
+  width:100%;background:#141b1d;color:var(--text);border:1px solid #ffffff2e;border-radius:9px;padding:10px 12px;font:inherit;font-size:15px
+}
+textarea{min-height:110px;resize:vertical}
+.btn{background:#3a494d;border:0;border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer;min-height:40px}
+.btn:hover{background:#465a5f}
+.btn.primary{background:var(--amber);color:#2a1d00}
+.btn.primary:hover{background:#ffc046}
+.btn:disabled{opacity:.5;cursor:default}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chrow{display:flex;gap:8px;flex-wrap:wrap}
+.chrow select{flex:1 1 200px;width:auto}
+#edItems{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#edItems li{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#edItems .t{flex:1 1 220px;width:auto}
+#edItems .m{width:84px}
+#edItems li .btn{min-width:40px;padding:0 10px}
+#edItems .empty{color:var(--muted);font-size:14px}
+#edItems .pl{font:800 11px/1 'Nunito',sans-serif;color:#2a1d00;background:var(--amber);border-radius:6px;padding:4px 7px;flex:none}
+#edStatus{min-height:1.3em;color:var(--amber);font-size:14px;margin:0}
+details summary{cursor:pointer;font-weight:700}
+</style>
+</head>
+<body>
+<main class="stage">
+  <div id="fb-root"></div>
+  <div class="banner" id="fileBanner">
+    Abriste el archivo directo desde tu equipo. YouTube suele bloquear los videos así (error 153).
+    Súbelo a GitHub Pages o Netlify, o ábrelo con un servidor local.
+    <button id="bannerX">Cerrar</button>
+  </div>
+
+  <section class="tv" id="tv" aria-label="Televisión">
+    <span class="brand" id="brand">Canal Retro</span>
+    <div class="bezel">
+      <div class="screen" id="screen">
+        <div class="picture">
+          <div id="yt"></div>
+          <iframe id="tt" allow="autoplay; fullscreen" style="display:none"></iframe>
+          <video id="vp" playsinline preload="auto" disablepictureinpicture style="display:none"></video>
+          <div id="fbBox"></div>
+          <div class="shield" id="shield"></div>
+          <canvas id="noise" width="192" height="108"></canvas>
+          <div class="msg" id="msg"></div>
+        </div>
+        <div class="osd" id="osd"><div class="l1" id="osdL1"></div><div class="l2" id="osdL2"></div><div class="l2 l3" id="osdL3"></div></div>
+        <div class="scan"></div>
+        <button class="wake" id="wake" aria-label="Encender la tele">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff5a45" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v8"/><path d="M6.5 6.8a8 8 0 1 0 11 0"/></svg>
+          Encender la tele
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="grp transport">
+        <button class="key" id="prevEp" aria-label="Episodio anterior"><svg viewBox="0 0 24 24"><path d="M6 5v14M18 5l-9 7 9 7z"/></svg></button>
+        <button class="key" id="back10" aria-label="Retroceder 10 segundos">−10 s</button>
+        <button class="key" id="playPause" aria-label="Pausar o reanudar">Pausar</button>
+        <button class="key" id="fwd10" aria-label="Adelantar 10 segundos">+10 s</button>
+        <button class="key" id="nextEp" aria-label="Episodio siguiente"><svg viewBox="0 0 24 24"><path d="M18 5v14M6 5l9 7-9 7z"/></svg></button>
+        <button class="led clk" id="clk" hidden aria-label="Reloj del episodio. Toca para poner el minuto en que va el video">0:00 / 24:00</button>
+        <button class="key" id="clkEnd" hidden aria-label="El video ya terminó: guardar duración y pasar al siguiente">Ya terminó</button>
+      </div>
+      <div class="grp">
+        <button class="knob" id="knob" aria-label="Siguiente canal"></button>
+        <div class="led" id="led" aria-live="polite">01</div>
+      </div>
+      <div class="grp">
+        <button class="key" id="chDn" aria-label="Canal anterior"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+        <button class="key" id="chUp" aria-label="Canal siguiente"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+      </div>
+      <label class="vol" id="volGrp">Volumen <input type="range" id="vol" min="0" max="100" value="80"></label>
+      <button class="key tog" id="mute" aria-pressed="false">Silencio</button>
+      <button class="key tog" id="cc" aria-pressed="false">Subtítulos: no</button>
+      <button class="key" id="fbOpen" hidden>Abrir en Facebook</button>
+      <button class="key tog" id="fbCtl" aria-pressed="false" hidden>Tocar video: no</button>
+      <span class="spacer"></span>
+      <button class="key" id="full" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="key" id="openEd">Editar canales</button>
+      <button class="key power" id="power" aria-pressed="false" aria-label="Encender o apagar"><i></i>Tele</button>
+      <span class="megaNote" id="megaNote" hidden>Este video es de MEGA: no se puede pausar, adelantar, silenciar ni poner subtítulos desde aquí — son cosas que solo controla el reproductor de MEGA. Usa «Abrir en MEGA» o el botón ▶ adentro del video; para cambiar de episodio, los botones de arriba y el canal sí funcionan.</span>
+    </div>
+    <p class="hint">Teclado: flechas arriba y abajo cambian de canal, izquierda y derecha mueven 10 segundos, espacio pausa, los números 1 a 9 saltan a un canal, M silencia y F pone pantalla completa.</p>
+  </section>
+
+  <aside class="guide" aria-label="Guía de programación">
+    <h2>Guía de programación</h2>
+    <div class="rows" id="rows"></div>
+  </aside>
+</main>
+
+<dialog id="editor">
+  <div class="ed-head">
+    <h2>Editar canales</h2>
+    <button class="btn" id="edClose">Cerrar</button>
+  </div>
+  <div class="ed-body">
+    <section>
+      <h3>Nombre de tu canal de TV</h3>
+      <input type="text" id="stName" maxlength="40">
+    </section>
+
+    <section>
+      <h3>Cómo se reproduce</h3>
+      <select id="modeSel" aria-label="Modo de reproducción">
+        <option value="own">A mi ritmo: empieza en el episodio 1 y guarda dónde te quedaste</option>
+        <option value="live">En vivo: como TV real, según el reloj</option>
+      </select>
+      <div class="btns"><button class="btn" id="mixReset">Reiniciar la Mezcla</button></div>
+    </section>
+
+    <section>
+      <h3>Efectos de pantalla</h3>
+      <p>Las líneas de barrido y el ruido lucen retro, pero en algunos celulares hacen que el video se atrase respecto al audio. «Automático» los quita solo con Facebook.</p>
+      <select id="fxSel" aria-label="Efectos de pantalla">
+        <option value="auto">Automático (ligeros con Facebook)</option>
+        <option value="full">Siempre completos</option>
+        <option value="lite">Siempre ligeros (sin líneas ni ruido)</option>
+      </select>
+    </section>
+
+    <section>
+      <h3>Facebook</h3>
+      <p>Método de reproducción. «Automático» prueba el reproductor con control completo y, si no carga, usa el modo básico (sin control de tiempo).</p>
+      <select id="fbMethodSel" aria-label="Método de Facebook">
+        <option value="auto">Automático (recomendado)</option>
+        <option value="sdk">Solo reproductor con control completo (SDK)</option>
+        <option value="iframe">Solo modo básico (iframe, sin control)</option>
+      </select>
+      <p style="margin-top:10px">ID de app de Facebook (opcional; si tienes una, ayuda a que el SDK cargue mejor. Requiere recargar la página).</p>
+      <input type="text" id="fbApp" inputmode="numeric" maxlength="24" placeholder="Solo números">
+    </section>
+
+    <section>
+      <h3>Canal</h3>
+      <div class="chrow">
+        <select id="edCh" aria-label="Canal a editar"></select>
+        <button class="btn" id="chNew">Nuevo</button>
+        <button class="btn" id="chRen">Renombrar</button>
+        <button class="btn" id="chDel">Borrar</button>
+        <button class="btn" id="chReset">Reiniciar avance</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Agregar episodios</h3>
+      <p>Pega un link por línea (YouTube, TikTok, Facebook, Vimeo, Archive.org, MEGA, YourUpload, Uqload, Google Drive o un link directo a un video MP4/WebM). Un link de Archive.org de un item con varios videos agrega todos como episodios. El archivo de Google Drive debe estar compartido como «Cualquier persona con el enlace». Opcional: <b>link | título | minutos</b>. También sirve el link de una playlist pública completa de YouTube.</p>
+      <textarea id="addBox" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.tiktok.com/@usuario/video/7123456789012345678&#10;https://www.facebook.com/watch/?v=1234567890123456&#10;https://www.facebook.com/reel/1234567890123456&#10;https://vimeo.com/123456789&#10;https://archive.org/details/nombre-del-item&#10;https://mega.nz/file/XXXXXXXX#clave&#10;https://www.yourupload.com/watch/0Rxam0rQ3G4r&#10;https://uqload.vc/6oye9azl7qnn.html&#10;https://drive.google.com/file/d/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/view&#10;https://ejemplo.com/video.mp4&#10;https://youtu.be/... | Episodio 2 | 23:40&#10;https://www.youtube.com/playlist?list=..."></textarea>
+      <div class="btns">
+        <button class="btn primary" id="addBtn">Agregar al canal</button>
+        <button class="btn" id="detBtn">Detectar títulos y duraciones</button>
+      </div>
+      <p id="edStatus" role="status"></p>
+    </section>
+
+    <section>
+      <h3>Episodios del canal (en orden de programación)</h3>
+      <ul id="edItems"></ul>
+    </section>
+
+    <details>
+      <summary>Respaldo y compartir</summary>
+      <p>Para mandárselo a alguien por WhatsApp usa <b>Compartir respaldo</b>: va como archivo, porque un texto tan largo se corta en el chat. Quien lo reciba usa <b>Restaurar desde archivo</b>. También puedes pegar el respaldo en <b>const PRESET</b> dentro del archivo, así cualquiera que lo abra verá la misma programación al mismo tiempo.</p>
+      <textarea id="bkBox" placeholder="Aquí aparece el respaldo. Para restaurar, pega uno aquí."></textarea>
+      <div class="btns">
+        <button class="btn" id="bkShare">Compartir respaldo</button>
+        <label class="btn" for="bkFile" id="bkFileLbl" style="cursor:pointer">Restaurar desde archivo</label>
+        <input type="file" id="bkFile" accept=".txt,.json,text/plain,application/json" hidden>
+        <button class="btn" id="bkCopy">Copiar respaldo</button>
+        <button class="btn" id="bkLoad">Restaurar desde la caja</button>
+      </div>
+    </details>
+  </div>
+</dialog>
+
+<div style="position:fixed;left:-9999px;top:0;width:220px;height:124px" aria-hidden="true"><div id="probe"></div></div>
+
+<script>
+(function(){
+'use strict';
+
+/* Si pegas aquí un respaldo (Editar canales > Respaldo), todos verán lo mismo. */
+const PRESET = null;
+
+const EPOCH = Date.UTC(2026,0,1)/1000;   // punto de partida común de la parrilla
+const DEF_MIN = 24;                       // minutos por defecto de un episodio de YouTube
+const DEF_MIN_TT = 1;                     // minutos por defecto de un video de TikTok
+const DEF_MIN_FB = 5;                     // minutos por defecto de un video de Facebook
+const KEY = 'canalretro.v1', LKEY = 'canalretro.learned.v1';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Datos ---------- */
+function defaults(){
+  return {station:'Canal Retro',vol:80,ch:0,channels:['Koni-chan','Dragon Ball Z','Naruto','Sailor Moon','Ranma ½']
+    .map((n,i)=>({id:'c'+i,name:n,items:[]}))};
+}
+function loadState(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&Array.isArray(s.channels)) return s;}catch(e){}
+  if(PRESET&&PRESET.state&&Array.isArray(PRESET.state.channels)) return JSON.parse(JSON.stringify(PRESET.state));
+  return defaults();
+}
+function loadLearned(){
+  try{const s=JSON.parse(localStorage.getItem(LKEY)); if(s&&typeof s==='object') return s;}catch(e){}
+  return (PRESET&&PRESET.learned)||{};
+}
+let state = loadState(), learned = loadLearned();
+if(state.mode!=='live') state.mode='own';
+if(!state.progress||typeof state.progress!=='object') state.progress={};
+if(!state.mix||typeof state.mix!=='object') state.mix={ptr:{},cur:null,runLeft:0};
+if(typeof state.cc!=='boolean') state.cc=false;
+if(!['auto','sdk','iframe'].includes(state.fbMethod)) state.fbMethod='auto';
+if(typeof state.fbApp!=='string') state.fbApp='';
+if(!['auto','full','lite'].includes(state.fx)) state.fx='auto';
+const save = ()=>{try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}};
+const saveL = ()=>{try{localStorage.setItem(LKEY,JSON.stringify(learned));}catch(e){}};
+
+/* ---------- Parrilla ---------- */
+const dur = it => Math.max(30, Math.round(learned[it.vid] || (it.min||DEF_MIN)*60));
+
+function lineup(){
+  const list = state.channels.map(c=>({key:c.id,name:c.name,items:c.items}));
+  const filled = state.channels.filter(c=>c.items.length);
+  if(filled.length>=2){
+    const mixed=[], max=Math.max(...filled.map(c=>c.items.length));
+    for(let k=0;k<max;k++) filled.forEach(c=>{ if(k<c.items.length) mixed.push(c.items[k]); });
+    list.push({key:'mix',name:'Mezcla',items:mixed});
+  }
+  return list;
+}
+function locate(items,t){
+  const total = items.reduce((a,it)=>a+dur(it),0);
+  const pos = (((t-EPOCH)%total)+total)%total;
+  const cycleStart = t-pos;
+  let acc=0;
+  for(let i=0;i<items.length;i++){
+    const d=dur(items[i]);
+    if(pos<acc+d) return {i,offset:pos-acc,start:cycleStart+acc,end:cycleStart+acc+d};
+    acc+=d;
+  }
+  return {i:0,offset:0,start:t,end:t+dur(items[0])};
+}
+function upcoming(items,t,n){
+  const loc=locate(items,t), out=[]; let start=loc.start;
+  for(let k=0;k<n;k++){ const it=items[(loc.i+k)%items.length]; out.push({it,start}); start+=dur(it); }
+  return out;
+}
+const fmt = s => new Date(s*1000).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'});
+
+/* ---------- Estado de la tele ---------- */
+const screen=$('#screen'), msg=$('#msg'), osd=$('#osd');
+let cur = Math.max(0,state.ch|0), powered=false, curLoc=null, curItem=null;
+let wd=null, started=false, curMeta=null, timer=null, osdT=null, errStreak=0, endLoop=0, muted=false, dirty=false;
+let player=null, ready=false, apiFailed=false;
+let probe=null, probeReady=false, probeCb=null;
+
+/* ---------- YouTube ---------- */
+const tag=document.createElement('script');
+tag.src='https://www.youtube.com/iframe_api';
+tag.onerror=()=>{apiFailed=true; if(powered&&(!curItem||!curItem.plat||curItem.plat==='yt')) showMsg('No se pudo cargar YouTube','Revisa tu conexión a internet y recarga la página.');};
+document.head.appendChild(tag);
+
+window.onYouTubeIframeAPIReady=function(){
+  player=new YT.Player('yt',{
+    width:'100%',height:'100%',
+    playerVars:{controls:0,disablekb:1,fs:0,modestbranding:1,rel:0,playsinline:1,iv_load_policy:3,hl:'es-419'},
+    events:{onReady:onMainReady,onStateChange:onMainState,onError:onMainError}
+  });
+  probe=new YT.Player('probe',{
+    width:'220',height:'124',playerVars:{controls:0,playsinline:1},
+    events:{
+      onReady:()=>{probeReady=true;try{probe.mute();}catch(e){}},
+      onStateChange:e=>{if(probeCb)probeCb('state',e.data);},
+      onError:e=>{if(probeCb)probeCb('error',e.data);}
+    }
+  });
+};
+function onMainReady(){
+  ready=true; clearTimeout(wd);
+  try{player.setVolume(state.vol??80);}catch(e){}
+  if(powered&&curItem&&(!curItem.plat||curItem.plat==='yt')) tune(cur);
+}
+function onMainState(e){
+  if(!curItem||curItem.plat==='tt'||curItem.plat==='fb'||curItem.plat==='vm'||curItem.plat==='mp4'||isEmbed(curItem)) return;
+  if(e.data===1){ // reproduciendo
+    errStreak=0; started=true; hideMsg(); setPlayLabel(true);
+    applyCC(); setTimeout(applyCC,1000);
+    pickAudio();
+    let d=0; try{d=player.getDuration();}catch(x){}
+    if(curItem&&d>30){
+      if(d-player.getCurrentTime()>8) endLoop=0;
+      const known=learned[curItem.vid]||(curItem.min||DEF_MIN)*60;
+      if(Math.abs(d-known)>2){
+        learned[curItem.vid]=Math.round(d); saveL();
+        if(state.mode==='live'){
+          clearTimeout(timer);
+          const left=d-player.getCurrentTime();
+          timer=setTimeout(()=>tune(cur,{ahead:.5}),left*1000+300);
+        }
+        renderGuide();
+      }
+    }
+  }else if(e.data===2){ // pausa
+    setPlayLabel(false); saveProgress();
+  }else if(e.data===0){ // terminó
+    let d=0; try{d=player.getDuration();}catch(x){}
+    if(curItem&&d>30){learned[curItem.vid]=Math.round(d); saveL();}
+    if(state.mode==='live'){
+      endLoop++;
+      const skip=(endLoop>3&&curLoc)?Math.max(0,curLoc.end-Date.now()/1000)+.5:.5;
+      tune(cur,{ahead:skip});
+    }else{
+      advanceOwn();
+      tune(cur,{noSave:true});
+    }
+  }
+}
+/* ---------- Audio en español para videos de YouTube con varias pistas ----------
+   Muchos videos traen audio en varios idiomas y, dentro de un reproductor
+   incrustado, YouTube suele arrancar con el original. La API oficial no tiene
+   forma de elegir la pista, así que se intenta con los métodos internos del
+   reproductor (no documentados). Si YouTube no los expone, no pasa nada: se
+   ignora en silencio. Si hay varias pistas, se avisa en pantalla lo que se hizo. */
+const AUDIO_ES=/(^|[^a-z])(es|spa|spanish)([^a-z]|$)|espa[nñ]ol/i;
+const AUDIO_LATAM=/419|latin|latam|am[eé]rica|(^|[^a-z])(mx|us)([^a-z]|$)/i;
+let audioFor='', audioTry=0;
+function trackText(t){
+  let s='';
+  try{ s+=' '+JSON.stringify(t); }catch(e){}
+  ['id','displayName','name','languageCode'].forEach(k=>{try{ if(t&&t[k]!=null) s+=' '+t[k]; }catch(e){}});
+  try{ if(t&&typeof t.getLanguageInfo==='function'){const li=t.getLanguageInfo(); s+=' '+JSON.stringify(li)+' '+(li&&li.name||'')+' '+(li&&li.id||'');} }catch(e){}
+  return s;
+}
+function audioNote(t){
+  $('#osdL3').textContent=t; osd.classList.add('show'); clearTimeout(osdT);
+  osdT=setTimeout(()=>osd.classList.remove('show'),4500);
+}
+function pickAudio(){
+  if(!curItem||(curItem.plat&&curItem.plat!=='yt')) return;
+  if(audioFor!==curItem.vid){audioFor=curItem.vid; audioTry=0;}
+  if(audioTry>=4) return;
+  audioTry++;
+  const vid=curItem.vid;
+  let list=[];
+  try{
+    if(typeof player.getAvailableAudioTracks!=='function'||typeof player.setAudioTrack!=='function') return;
+    list=Array.from(player.getAvailableAudioTracks()||[]);
+  }catch(e){ return; }
+  if(list.length<2){ setTimeout(()=>{ if(curItem&&curItem.vid===vid) pickAudio(); },1200); return; }
+  const txt=list.map(trackText);
+  let i=txt.findIndex(t=>AUDIO_ES.test(t)&&AUDIO_LATAM.test(t));
+  if(i<0) i=txt.findIndex(t=>AUDIO_ES.test(t));
+  if(i<0){ audioNote('Este video no trae audio en español'); return; }
+  let now=''; try{ now=trackText(player.getAudioTrack()); }catch(e){}
+  if(now&&now===txt[i]) return;              // ya está en español
+  try{
+    player.setAudioTrack(list[i]);
+    let name=''; try{ name=list[i].displayName||list[i].name||''; }catch(e){}
+    audioNote('Audio: '+(name||'español'));
+  }catch(e){}
+}
+function applyCC(){
+  if(!curItem||curItem.plat==='tt'||curItem.plat==='fb'||curItem.plat==='vm'||curItem.plat==='mp4'||isEmbed(curItem)) return;
+  try{
+    if(state.cc){player.loadModule('captions');}
+    else{player.unloadModule('captions');player.unloadModule('cc');}
+  }catch(e){}
+}
+function setPlayLabel(playing){const b=$('#playPause'); if(b) b.textContent=playing?'Pausar':'Reanudar';}
+function onMainError(e){
+  if(!curItem||curItem.plat==='tt'||curItem.plat==='fb'||curItem.plat==='vm'||curItem.plat==='mp4'||isEmbed(curItem)) return;
+  errStreak++;
+  const code=e.data, title=curItem?curItem.title:'este video';
+  const why = code===100 ? 'Fue eliminado o es privado.'
+    : (code===101||code===150) ? 'Su dueño no permite reproducirlo fuera de YouTube. Quítalo del canal.'
+    : code===153 ? 'YouTube bloqueó el reproductor. Sube el archivo a un hosting o ábrelo con un servidor local.'
+    : 'No se pudo reproducir.';
+  const items=lineup()[cur]?.items.length||1;
+  if(errStreak>=items){
+    showMsg('Ningún episodio de este canal se puede reproducir',why);
+    return;
+  }
+  showMsg('Saltando «'+title+'»',why);
+  const wait=curLoc?Math.max(0,curLoc.end-Date.now()/1000)+.5:1;
+  clearTimeout(timer);
+  if(state.mode==='live'){
+    timer=setTimeout(()=>tune(cur,{ahead:wait}),1800);
+  }else{
+    const k0=cur;
+    timer=setTimeout(()=>{if(cur!==k0) return; advanceOwn(); tune(cur,{noSave:true});},1800);
+  }
+}
+
+/* ---------- TikTok ---------- */
+const ttFrame=$('#tt');
+let ttReady=false, ttCur={t:0,d:0,st:-1}, ttPendingSeek=null, ttRetried=false;
+function ttWantSound(){ ttSend(muted||state.vol<=0?'mute':'unMute'); }
+let curPlat='yt';
+function applyFx(p){
+  const lite = state.fx==='lite' || (state.fx==='auto' && p==='fb');
+  screen.classList.toggle('lite',lite);
+  if(lite){ nz.style.opacity=0; }
+}
+function showPlat(p){
+  curPlat=p; applyFx(p);
+  $('#yt').style.display=p==='yt'?'':'none';
+  ttFrame.style.display=p==='tt'?'':'none';
+  $('#fbBox').style.display=(p==='fb'||p==='vm'||EMBED[p])?'block':'none';
+  $('#vp').style.display=p==='mp4'?'block':'none';
+  if(p==='fb'||EMBED[p]) fbUi(true,p);
+  megaUi(!!EMBED[p],p);
+}
+function ttURL(vid){
+  return 'https://www.tiktok.com/player/v1/'+vid
+    +'?controls=0&progress_bar=0&play_button=0&volume_control=0&fullscreen_button=0'
+    +'&timestamp=0&native_context_menu=0&closed_caption=0&rel=0&autoplay=1'
+    +'&muted=1';   // siempre inicia en mudo: el autoplay con sonido lo bloquea el navegador
+}
+function ttSend(type,value){
+  try{ttFrame.contentWindow.postMessage({'x-tiktok-player':true,type,value},'*');}catch(e){}
+}
+function onTtError(){
+  if(curItem&&!ttRetried&&!started){   // un primer fallo suele ser pasajero o de autoplay: reintenta una vez
+    ttRetried=true; ttReady=false; ttCur={t:0,d:0,st:-1};
+    setTimeout(()=>{ if(curItem&&curItem.plat==='tt') ttFrame.src=ttURL(curItem.vid); },600);
+    return;
+  }
+  errStreak++;
+  const title=curItem?curItem.title:'este video';
+  const items=lineup()[cur]?.items.length||1;
+  if(errStreak>=items){showMsg('Ningún episodio de este canal se puede reproducir','No se pudo reproducir en TikTok.');return;}
+  showMsg('Saltando «'+title+'»','No se pudo reproducir en TikTok.');
+  clearTimeout(timer);
+  if(state.mode==='live'){
+    const wait=curLoc?Math.max(0,curLoc.end-Date.now()/1000)+.5:1;
+    timer=setTimeout(()=>tune(cur,{ahead:wait}),1800);
+  }else{
+    const k0=cur;
+    timer=setTimeout(()=>{if(cur!==k0) return; advanceOwn(); tune(cur,{noSave:true});},1800);
+  }
+}
+addEventListener('message',e=>{
+  const d=e.data; if(!d||!d['x-tiktok-player']||!curItem||curItem.plat!=='tt') return;
+  if(d.type==='onPlayerReady'){
+    ttReady=true;
+    if(ttPendingSeek!=null){ttSend('seekTo',ttPendingSeek);ttPendingSeek=null;}
+    ttWantSound();
+  }else if(d.type==='onStateChange'){
+    ttCur.st=d.value;
+    if(d.value===1){errStreak=0;started=true;hideMsg();setPlayLabel(true);ttWantSound();}
+    else if(d.value===2){setPlayLabel(false);saveProgress();}
+    else if(d.value===0){
+      if(ttCur.d>3){learned[curItem.vid]=Math.round(ttCur.d);saveL();}
+      if(state.mode==='live'){
+        endLoop++;
+        const skip=(endLoop>3&&curLoc)?Math.max(0,curLoc.end-Date.now()/1000)+.5:.5;
+        tune(cur,{ahead:skip});
+      }else{advanceOwn();tune(cur,{noSave:true});}
+    }
+  }else if(d.type==='onCurrentTime'){
+    ttCur.t=(d.value&&d.value.currentTime)||0; ttCur.d=(d.value&&d.value.duration)||0;
+    const known=learned[curItem.vid]||(curItem.min||DEF_MIN_TT)*60;
+    if(ttCur.d>3&&Math.abs(ttCur.d-known)>2){learned[curItem.vid]=Math.round(ttCur.d);saveL();renderGuide();}
+  }else if(d.type==='onPlayerError'){
+    onTtError();
+  }
+});
+
+
+/* ---------- Reproductores incrustados sin API (MEGA, YourUpload) ---------- */
+const EMBED={
+  mega:{name:'MEGA'},
+  yu:{name:'YourUpload'},
+  uq:{name:'Uqload'},
+  gd:{name:'Google Drive'}
+};
+const isEmbed = it => !!it && !!EMBED[it.plat];
+const embedLike = it => isEmbed(it) || (!!it && it.plat==='vm' && vmBasic);   // vm en modo básico se controla como MEGA (reloj manual)
+
+/* ---------- Facebook ---------- */
+/* Camino 1: SDK de JavaScript (control completo: duración, fin, pausa, saltos, volumen).
+   Camino 2: plugin en iframe (modo básico: sin eventos; avanza por los minutos del episodio).
+   Camino 3: botón «Abrir en Facebook» y «Tocar video FB» para usar los controles nativos. */
+const FB_VER='v23.0';
+const fbBox=$('#fbBox'), shieldEl=$('#shield');
+let fbSdk='idle', fbQueue=[], fbInst=null, fbSubs=[], fbTok=0, fbW1=0, fbW2=0, fbTimer=0;
+let fbPlaying=false, fbDirect=false, fbSeeked=false, fbStartAt=0;
+
+function hashId(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return 'h'+(h>>>0).toString(36);}
+function fbParse(raw){
+  let s=String(raw||'').trim(), m;
+  if((m=s.match(/data-href=["']([^"']+)["']/i))) s=m[1];
+  else if((m=s.match(/plugins\/video\.php\?[^"'\s>]*?href=([^&"'\s>]+)/i))){try{s=decodeURIComponent(m[1]);}catch(e){s=m[1];}}
+  s=s.replace(/&amp;/g,'&');
+  if(!/^https?:\/\//i.test(s)){
+    if(/^(?:[a-z0-9-]+\.)?(?:facebook\.com|fb\.com|fb\.watch)\b/i.test(s)) s='https://'+s; else return null;
+  }
+  let u; try{u=new URL(s);}catch(e){return null;}
+  const host=u.hostname.toLowerCase(), path=u.pathname.replace(/\/+$/,'');
+  if(host==='fb.watch'){ if(path.length<2) return null; const url='https://fb.watch'+path+'/'; return {id:hashId(url),url}; }
+  if(!/(^|\.)(facebook\.com|fb\.com)$/.test(host)) return null;
+  const base='https://www.facebook.com', v=u.searchParams.get('v');
+  if(v&&/^\d{6,}$/.test(v)&&/^\/(watch|video\.php)/.test(path)) return {id:v,url:base+'/watch/?v='+v};
+  if((m=path.match(/^\/reel\/(\d{6,})/))) return {id:m[1],url:base+'/reel/'+m[1]};
+  if((m=path.match(/\/videos\/(?:[^/]+\/)?(\d{6,})/))) return {id:m[1],url:base+path};
+  if(/^\/share\/[vr]\/[A-Za-z0-9_-]+/.test(path)){ const url=base+path+'/'; return {id:hashId(url),url}; }
+  return null;
+}
+
+function fbUi(on,p){ $('#fbOpen').hidden=!on; $('#fbCtl').hidden=!on; if(on) $('#fbOpen').textContent=EMBED[p]?'Abrir en '+EMBED[p].name:(p==='vm'?'Abrir en Vimeo':'Abrir en Facebook'); }
+function megaUi(on,p){
+  ['mute','cc'].forEach(id=>{const b=$('#'+id); if(b) b.hidden=on;});
+  const vg=$('#volGrp'); if(vg) vg.hidden=on;
+  const clk=on&&state.mode==='own';
+  ['clk','clkEnd'].forEach(id=>{const b=$('#'+id); if(b) b.hidden=!clk;});
+  if(!on){const pb=$('#playPause'); if(pb) pb.textContent='Pausar';}
+  const note=$('#megaNote'); if(note){
+    note.hidden=!on;
+    if(on&&EMBED[p]){
+      const n=EMBED[p].name;
+      note.textContent=state.mode==='own'
+        ? n+' no avisa en qué minuto va ni cuándo termina, así que la tele lleva su propio reloj. Arranca solo al tocar ▶ dentro del video. Si pausas, adelantas o atrasas el video, ajusta el reloj con los botones o tocando el contador. Al llegar al final pasa al siguiente episodio; si el video acaba antes, toca «Ya terminó» y guarda su duración real.'
+        : n+' no permite controlarlo desde aquí: en modo en vivo el episodio cambia según la hora de la parrilla y siempre empieza desde el inicio. Usa «Abrir en '+n+'» o el botón ▶ adentro del video.';
+    }
+  }
+}
+function setFbDirect(v){
+  fbDirect=v; shieldEl.style.pointerEvents=v?'none':'';
+  const b=$('#fbCtl'); b.setAttribute('aria-pressed',v); b.textContent=v?'Tocar video: sí':'Tocar video: no';
+}
+function fbDropSdk(){
+  clearTimeout(fbW1); clearTimeout(fbW2);
+  fbSubs.forEach(x=>{try{x.release();}catch(e){}}); fbSubs=[]; fbInst=null; fbPlaying=false;
+}
+function fbTeardown(){
+  fbTok++; clearTimeout(fbTimer); fbDropSdk(); clkReset();
+  try{fbBox.innerHTML='';}catch(e){}
+  setFbDirect(false); fbUi(false);
+}
+function fbEnsureSdk(cb){
+  if(fbSdk==='ready') return cb(true);
+  if(fbSdk==='failed') return cb(false);
+  fbQueue.push(cb);
+  if(fbSdk==='loading') return;
+  fbSdk='loading';
+  const flush=()=>{const q=fbQueue; fbQueue=[]; q.forEach(f=>f(fbSdk==='ready'));};
+  window.fbAsyncInit=function(){
+    try{
+      const o={xfbml:false,version:FB_VER}; if(state.fbApp) o.appId=state.fbApp;
+      FB.init(o); FB.Event.subscribe('xfbml.ready',fbOnXfbml); fbSdk='ready';
+    }catch(e){fbSdk='failed';}
+    flush();
+  };
+  const sc=document.createElement('script');
+  sc.async=true; sc.defer=true; sc.crossOrigin='anonymous'; sc.src='https://connect.facebook.net/es_LA/sdk.js';
+  sc.onerror=()=>{fbSdk='failed'; flush();};
+  document.head.appendChild(sc);
+  setTimeout(()=>{ if(fbSdk==='loading'){fbSdk='failed'; flush();} },8000);
+}
+function fbWantSound(){
+  if(!fbInst) return;
+  try{
+    if(muted||state.vol<=0) fbInst.mute();
+    else{ fbInst.unmute(); fbInst.setVolume(Math.max(0,Math.min(1,state.vol/100))); }
+  }catch(e){}
+}
+function fbPlay(it,startAt){
+  const tok=fbTok, method=state.fbMethod||'auto';
+  fbSeeked=false; fbStartAt=startAt||0;
+  if(method==='iframe'){ fbIframe(it,tok); return; }
+  fbEnsureSdk(ok=>{
+    if(tok!==fbTok) return;
+    if(!ok){
+      if(method==='auto') fbIframe(it,tok);
+      else fbFail('No se pudo cargar el reproductor de Facebook. Puede que un bloqueador de anuncios o de rastreo lo esté frenando.');
+      return;
+    }
+    fbMount(it,tok,method);
+  });
+}
+function fbMount(it,tok,method){
+  const w=Math.max(200,Math.round(fbBox.clientWidth||640));
+  fbBox.innerHTML='<div class="fb-video" data-href="'+esc(it.url)+'" data-width="'+w+'" data-allowfullscreen="true" data-autoplay="true" data-show-text="false" data-show-captions="'+(state.cc?'true':'false')+'"></div>';
+  try{FB.XFBML.parse(fbBox);}catch(e){
+    if(method==='auto') fbIframe(it,tok); else fbFail('Facebook no pudo iniciar el reproductor.');
+    return;
+  }
+  fbW1=setTimeout(()=>{
+    if(tok!==fbTok||fbInst) return;
+    if(method==='auto') fbIframe(it,tok); else fbFail('Facebook no respondió. El video puede ser privado o no permitir incrustarse.');
+  },10000);
+}
+function fbOnXfbml(m){
+  if(!m||m.type!=='video'||!curItem||curItem.plat!=='fb'||fbInst||!m.instance) return;
+  const tok=fbTok, inst=m.instance;
+  fbInst=inst; clearTimeout(fbW1);
+  const sub=(ev,fn)=>{try{fbSubs.push(inst.subscribe(ev,()=>{ if(tok===fbTok) fn(); }));}catch(e){}};
+  sub('startedPlaying',fbOnStart);
+  sub('paused',()=>{fbPlaying=false;setPlayLabel(false);saveProgress();});
+  sub('finishedPlaying',fbOnEnd);
+  sub('error',()=>{
+    if((state.fbMethod||'auto')==='auto'&&!started&&curItem) fbIframe(curItem,tok);
+    else fbFail('Facebook no pudo reproducir este video.');
+  });
+  try{inst.mute();}catch(e){}   // inicia en mudo para que el navegador permita el autoplay
+  try{inst.play();}catch(e){}
+  fbW2=setTimeout(()=>{
+    if(tok!==fbTok||started) return;
+    fbFail('No arrancó. Puede que el video sea privado, se haya borrado o no permita incrustarse.');
+  },20000);
+}
+function fbLearn(tok){
+  if(tok!==fbTok||!fbInst||!curItem) return;
+  let d=0,pos=0; try{d=fbInst.getDuration();pos=fbInst.getCurrentPosition();}catch(e){}
+  if(!(d>3)) return;
+  if(d-pos>8) endLoop=0;
+  const known=learned[curItem.vid]||(curItem.min||DEF_MIN_FB)*60;
+  if(Math.abs(d-known)>2){
+    learned[curItem.vid]=Math.round(d); saveL();
+    if(state.mode==='live'){
+      clearTimeout(timer);
+      timer=setTimeout(()=>tune(cur,{ahead:.5}),Math.max(1,d-pos)*1000+300);
+    }
+    renderGuide();
+  }
+}
+function fbOnStart(){
+  const tok=fbTok;
+  errStreak=0; started=true; fbPlaying=true; clearTimeout(fbW2); hideMsg(); setPlayLabel(true);
+  if(!fbSeeked){ fbSeeked=true; if(fbStartAt>3){try{fbInst.seek(fbStartAt);}catch(e){}} }
+  fbWantSound();
+  fbLearn(tok); setTimeout(()=>fbLearn(tok),1500); setTimeout(()=>fbLearn(tok),4000);
+}
+function fbOnEnd(){
+  fbPlaying=false;
+  let d=0; try{d=fbInst.getDuration();}catch(e){}
+  if(curItem&&d>3){learned[curItem.vid]=Math.round(d);saveL();}
+  if(state.mode==='live'){
+    endLoop++;
+    const skip=(endLoop>3&&curLoc)?Math.max(0,curLoc.end-Date.now()/1000)+.5:.5;
+    tune(cur,{ahead:skip});
+  }else{advanceOwn();tune(cur,{noSave:true});}
+}
+function fbIframe(it,tok){
+  if(tok!==fbTok||!it) return;
+  fbDropSdk();
+  const w=Math.round(fbBox.clientWidth||640), h=Math.round(fbBox.clientHeight||360);
+  fbBox.innerHTML='<iframe title="Facebook" scrolling="no" frameborder="0" allowfullscreen="true" '
+    +'allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen" '
+    +'src="https://www.facebook.com/plugins/video.php?href='+encodeURIComponent(it.url)
+    +'&show_text=false&autoplay=true&allowfullscreen=true&width='+w+'&height='+h+'"></iframe>';
+  setFbDirect(true); hideMsg(); setPlayLabel(true);
+  showOsd(); $('#osdL3').textContent='Modo básico de Facebook: sin control de tiempo';
+  // Sin API no hay evento de fin: en «a mi ritmo» avanza según los minutos del episodio.
+  if(state.mode==='own') fbTimer=setTimeout(()=>{
+    if(tok!==fbTok) return;
+    advanceOwn(); tune(cur,{noSave:true});
+  },(dur(it)+2)*1000);
+}
+function fbFail(why,label){
+  const title=curItem?curItem.title:'este video', url=curItem&&curItem.url;
+  const items=lineup()[cur]?.items.length||1;
+  errStreak++;
+  if(errStreak>=items){showMsg('Ningún episodio de este canal se puede reproducir',why,false,url,label);return;}
+  showMsg('Saltando «'+title+'»',why,false,url,label);
+  clearTimeout(timer);
+  if(state.mode==='live'){
+    const wait=curLoc?Math.max(0,curLoc.end-Date.now()/1000)+.5:1;
+    timer=setTimeout(()=>tune(cur,{ahead:wait}),3500);
+  }else{
+    const k0=cur;
+    timer=setTimeout(()=>{if(cur!==k0) return; advanceOwn(); tune(cur,{noSave:true});},3500);
+  }
+}
+
+
+/* ---------- Vimeo ---------- */
+/* Camino 1: SDK oficial de Vimeo (player.js), con el mismo control completo que
+   YouTube/TikTok/Facebook: duración, fin, pausa, saltos, volumen.
+   Camino 2: si el dueño del video no dejó que se incruste fuera de Vimeo, el SDK
+   nunca arranca; ahí se cae a un iframe básico con el reloj manual, igual que MEGA. */
+let vmSdk='idle', vmQueue=[], vmInst=null, vmTok=0, vmW1=0, vmCur={t:0,d:0};
+let vmPlaying=false, vmBasic=false;
+
+function vmParse(raw){
+  let s=String(raw||'').trim(), m;
+  if((m=s.match(/<iframe[^>]+src=["']([^"']+)["']/i))) s=m[1];
+  s=s.replace(/&amp;/g,'&');
+  if(!/^https?:\/\//i.test(s)){ if(/(^|\.)vimeo\.com\b/i.test(s)) s='https://'+s; else return null; }
+  let u; try{u=new URL(s);}catch(e){return null;}
+  const host=u.hostname.toLowerCase();
+  if(!/(^|\.)vimeo\.com$/.test(host)) return null;
+  const parts=u.pathname.split('/').filter(Boolean);
+  let id=null, h=u.searchParams.get('h')||'';
+  if(host==='player.vimeo.com'){
+    if(parts[0]==='video'&&parts[1]) id=parts[1];
+  }else{
+    const idx=parts.findIndex(p=>/^\d{5,}$/.test(p));
+    if(idx>=0){ id=parts[idx]; if(!h&&parts[idx+1]&&/^[a-z0-9]{8,}$/i.test(parts[idx+1])) h=parts[idx+1]; }
+  }
+  if(!id) return null;
+  return {id,h,url:'https://vimeo.com/'+id+(h?'/'+h:'')};
+}
+function vmEnsureSdk(cb){
+  if(vmSdk==='ready') return cb(true);
+  if(vmSdk==='failed') return cb(false);
+  vmQueue.push(cb);
+  if(vmSdk==='loading') return;
+  vmSdk='loading';
+  const flush=ok=>{vmSdk=ok?'ready':'failed'; const q=vmQueue; vmQueue=[]; q.forEach(f=>f(ok));};
+  if(window.Vimeo&&window.Vimeo.Player) return flush(true);
+  const sc=document.createElement('script');
+  sc.src='https://player.vimeo.com/api/player.js'; sc.async=true;
+  sc.onload=()=>flush(!!(window.Vimeo&&window.Vimeo.Player));
+  sc.onerror=()=>flush(false);
+  document.head.appendChild(sc);
+  setTimeout(()=>{ if(vmSdk==='loading') flush(false); },8000);
+}
+function vmWantSound(){
+  if(!vmInst) return;
+  try{ vmInst.setVolume(muted||state.vol<=0?0:Math.max(0,Math.min(1,state.vol/100))); }catch(e){}
+}
+function vmNoteUi(on){
+  ['mute','cc'].forEach(id=>{const b=$('#'+id); if(b) b.hidden=on;});
+  const vg=$('#volGrp'); if(vg) vg.hidden=on;
+  const clk=on&&state.mode==='own';
+  ['clk','clkEnd'].forEach(id=>{const b=$('#'+id); if(b) b.hidden=!clk;});
+  if(!on){const pb=$('#playPause'); if(pb) pb.textContent='Pausar';}
+  const note=$('#megaNote'); if(note){
+    note.hidden=!on;
+    if(on) note.textContent=state.mode==='own'
+      ? 'Este video de Vimeo no deja controlarlo desde aquí (su dueño limitó el reproductor), así que la tele lleva su propio reloj. Arranca solo al tocar ▶ dentro del video. Si pausas, adelantas o atrasas el video, ajusta el reloj con los botones o tocando el contador. Al llegar al final pasa al siguiente episodio; si el video acaba antes, toca «Ya terminó» y guarda su duración real.'
+      : 'Este video de Vimeo no deja controlarlo desde aquí (su dueño limitó el reproductor): en modo en vivo el episodio cambia según la hora de la parrilla y siempre empieza desde el inicio. Usa «Abrir en Vimeo» o el botón ▶ adentro del video.';
+  }
+}
+function vmFail(why){
+  const title=curItem?curItem.title:'este video', url=curItem&&curItem.url;
+  const items=lineup()[cur]?.items.length||1;
+  errStreak++;
+  if(errStreak>=items){showMsg('Ningún episodio de este canal se puede reproducir',why,false,url,'Abrir en Vimeo');return;}
+  showMsg('Saltando «'+title+'»',why,false,url,'Abrir en Vimeo');
+  clearTimeout(timer);
+  if(state.mode==='live'){
+    const wait=curLoc?Math.max(0,curLoc.end-Date.now()/1000)+.5:1;
+    timer=setTimeout(()=>tune(cur,{ahead:wait}),3500);
+  }else{
+    const k0=cur;
+    timer=setTimeout(()=>{if(cur!==k0) return; advanceOwn(); tune(cur,{noSave:true});},3500);
+  }
+}
+function vmBasicPlay(info,startAt,tok){
+  if(tok!==vmTok||!info) return;
+  vmBasic=true; vmInst=null;
+  const src='https://player.vimeo.com/video/'+info.id+'?autoplay=1'+(info.h?'&h='+encodeURIComponent(info.h):'');
+  fbBox.innerHTML='<iframe title="Vimeo" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" src="'+esc(src)+'"></iframe>';
+  fbUi(true,'vm'); hideMsg(); errStreak=0; started=true;
+  showOsd();
+  if(state.mode==='own'){
+    clkReset(startAt>3?startAt:0); clkPaint(); vmNoteUi(true);
+    $('#osdL3').textContent=eclk.base>0?'Vimeo: ponle al video el minuto '+fmtT(eclk.base)+' y dale ▶':'Vimeo: dale ▶ dentro del video y el reloj arranca solo';
+  }else{
+    setPlayLabel(true); vmNoteUi(true);
+    $('#osdL3').textContent='Vimeo: sin control remoto. Toca ▶ dentro del video.';
+  }
+}
+function vmMount(info,startAt,tok){
+  vmNoteUi(false);
+  const src='https://player.vimeo.com/video/'+info.id+'?autoplay=1&muted=1&controls=0&title=0&byline=0&portrait=0&dnt=1'+(info.h?'&h='+encodeURIComponent(info.h):'');
+  fbBox.innerHTML='<iframe id="vmFrame" title="Vimeo" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen src="'+esc(src)+'"></iframe>';
+  let inst;
+  try{ inst=new Vimeo.Player(fbBox.querySelector('#vmFrame')); }catch(e){ vmBasicPlay(info,startAt,tok); return; }
+  if(tok!==vmTok){ try{inst.unload();}catch(e){} return; }
+  vmInst=inst; fbUi(true,'vm');
+  inst.on('play',()=>{ if(tok!==vmTok) return; clearTimeout(vmW1); errStreak=0; started=true; vmPlaying=true; hideMsg(); setPlayLabel(true); vmWantSound(); });
+  inst.on('pause',()=>{ if(tok!==vmTok) return; vmPlaying=false; setPlayLabel(false); saveProgress(); });
+  inst.on('timeupdate',d=>{
+    if(tok!==vmTok||!curItem) return;
+    vmCur.t=(d&&d.seconds)||0; vmCur.d=(d&&d.duration)||0;
+    const known=learned[curItem.vid]||(curItem.min||DEF_MIN)*60;
+    if(vmCur.d>3&&Math.abs(vmCur.d-known)>2){
+      learned[curItem.vid]=Math.round(vmCur.d); saveL();
+      if(state.mode==='live'){
+        clearTimeout(timer);
+        timer=setTimeout(()=>tune(cur,{ahead:.5}),Math.max(1,vmCur.d-vmCur.t)*1000+300);
+      }
+      renderGuide();
+    }
+  });
+  inst.on('ended',()=>{
+    if(tok!==vmTok) return; vmPlaying=false;
+    if(state.mode==='live'){
+      endLoop++;
+      const skip=(endLoop>3&&curLoc)?Math.max(0,curLoc.end-Date.now()/1000)+.5:.5;
+      tune(cur,{ahead:skip});
+    }else{ advanceOwn(); tune(cur,{noSave:true}); }
+  });
+  inst.on('error',()=>{ if(tok!==vmTok) return; if(!started) vmBasicPlay(info,startAt,tok); else vmFail('Vimeo no pudo reproducir este video.'); });
+  inst.ready().then(()=>{
+    if(tok!==vmTok) return;
+    const go=()=>{ try{inst.play().catch(()=>{});}catch(e){} };
+    if(startAt>3) inst.setCurrentTime(startAt).then(go).catch(go); else go();
+  }).catch(()=>{ if(tok===vmTok) vmBasicPlay(info,startAt,tok); });
+  vmW1=setTimeout(()=>{ if(tok!==vmTok||started) return; vmBasicPlay(info,startAt,tok); },10000);
+}
+function vmPlay(it,startAt){
+  const info=vmParse(it.url)||{id:it.vid,h:''};
+  const tok=++vmTok; vmCur={t:0,d:0}; vmPlaying=false; vmBasic=false;
+  vmEnsureSdk(ok=>{
+    if(tok!==vmTok) return;
+    if(!ok) vmBasicPlay(info,startAt,tok); else vmMount(info,startAt,tok);
+  });
+}
+function vmTeardown(){
+  vmTok++; clearTimeout(vmW1);
+  if(vmInst){ try{vmInst.unload();}catch(e){} }
+  vmInst=null; vmPlaying=false; vmBasic=false; vmCur={t:0,d:0};
+  try{fbBox.innerHTML='';}catch(e){}
+  fbUi(false); vmNoteUi(false); clkReset();
+}
+
+
+/* ---------- MEGA (modo básico: reproductor incrustado, sin control de tiempo) ---------- */
+function megaParse(raw){
+  const s=String(raw||'').trim().replace(/&amp;/g,'&');
+  if(/mega\.(?:nz|co\.nz)\/(?:folder\/|#F!)/i.test(s)) return {folder:true};
+  let m=s.match(/mega\.(?:nz|co\.nz)\/(?:file|embed)\/([A-Za-z0-9_-]{6,12})#([A-Za-z0-9_-]{16,})/i);
+  if(!m) m=s.match(/mega\.(?:nz|co\.nz)\/(?:embed)?#!([A-Za-z0-9_-]{6,12})!([A-Za-z0-9_-]{16,})/i);
+  if(!m) return null;
+  const url='https://mega.nz/file/'+m[1]+'#'+m[2];
+  return {id:hashId(url),url,embed:'https://mega.nz/embed/'+m[1]+'#'+m[2]};
+}
+
+/* ---------- YourUpload (modo básico: reproductor incrustado, sin control de tiempo) ---------- */
+/* Acepta /watch/ID y /embed/ID (con o sin www, con http o https) y también el
+   <iframe ...> completo que ofrece YourUpload. Siempre se reconstruye el link
+   desde el ID, así que el iframe apunta únicamente a yourupload.com. */
+function yuParse(raw){
+  const s=String(raw||'').trim().replace(/&amp;/g,'&');
+  const m=s.match(/(?:^|[\/.@\s"'=])yourupload\.com\/(?:watch|embed)\/([A-Za-z0-9_-]{4,32})/i);
+  if(!m) return null;
+  return {id:'yu-'+m[1],url:'https://www.yourupload.com/watch/'+m[1],embed:'https://www.yourupload.com/embed/'+m[1]};
+}
+
+/* ---------- Uqload (modo básico: reproductor incrustado, sin control de tiempo) ----------
+   Acepta uqload.<dominio>/ID.html y uqload.<dominio>/embed-ID.html (el dominio
+   cambia seguido: .com, .io, .vc, etc.) y también el <iframe> completo.
+   El link se reconstruye siempre desde el ID, así que el iframe apunta
+   únicamente a un dominio uqload.* */
+function uqParse(raw){
+  const s=String(raw||'').trim().replace(/&amp;/g,'&');
+  const m=s.match(/(?:^|[\/.@\s"'=])uqload\.([a-z]{2,6})\/(?:embed-)?([a-z0-9]{8,20})(?:\.html)?(?=$|[\s"'?#&<>\/])/i);
+  if(!m) return null;
+  const tld=m[1].toLowerCase(), id=m[2].toLowerCase(), host='https://uqload.'+tld;
+  return {id:'uq-'+id,url:host+'/'+id+'.html',embed:host+'/embed-'+id+'.html'};
+}
+
+/* ---------- Google Drive (modo básico: reproductor incrustado, sin control de tiempo) ----------
+   Acepta /file/d/ID/..., ?id=ID y open?id=ID. El archivo debe estar compartido
+   como "Cualquier persona con el enlace", si no el iframe pide acceso. */
+function gdParse(raw){
+  const s=String(raw||'').trim().replace(/&amp;/g,'&');
+  let m=s.match(/drive\.google\.com\/file\/d\/([A-Za-z0-9_-]{15,})/i);
+  if(!m) m=s.match(/drive\.google\.com\/(?:open|uc)\?[^"'\s]*\bid=([A-Za-z0-9_-]{15,})/i);
+  if(!m) m=s.match(/drive\.google\.com\/[^"'\s]*[?&]id=([A-Za-z0-9_-]{15,})/i);
+  if(!m) return null;
+  const id=m[1];
+  return {id:'gd-'+id,url:'https://drive.google.com/file/d/'+id+'/view',embed:'https://drive.google.com/file/d/'+id+'/preview'};
+}
+
+/* ---------- Reloj manual (MEGA y YourUpload no dicen en qué minuto van) ----------
+   Estos reproductores viven en otro dominio: el navegador no deja leer su
+   minuto ni saber si adelantaste o atrasaste. Por eso la tele lleva su propio
+   reloj: arranca solo la primera vez que tocas dentro del video (o con el botón
+   «Iniciar reloj») y, si mueves el video, lo ajustas con −10 s / +10 s o tocando
+   el contador. Al llegar a la duración del episodio pasa al siguiente. */
+let eclk={on:false,base:0,since:0,touched:false,ran:false};
+const clkSecs=()=>eclk.base+(eclk.on?(Date.now()-eclk.since)/1000:0);
+function clkReset(base){eclk={on:false,base:base>0?base:0,since:0,touched:false,ran:false};}
+function clkPaint(){
+  if(!embedLike(curItem)||state.mode!=='own') return;
+  $('#clk').textContent=fmtT(clkSecs())+' / '+fmtT(dur(curItem));
+  $('#playPause').textContent=eclk.on?'Pausar reloj':(eclk.ran?'Seguir reloj':'Iniciar reloj');
+}
+function clkSet(sec){
+  eclk.base=Math.max(0,sec); if(eclk.on) eclk.since=Date.now();
+  eclk.touched=true; clkPaint(); saveProgress();
+}
+function clkToggle(){
+  if(eclk.on){eclk.base=clkSecs(); eclk.on=false;}
+  else{eclk.since=Date.now(); eclk.on=true; eclk.ran=true;}
+  eclk.touched=true; clkPaint(); saveProgress();
+}
+function clkTick(){
+  if(!powered||!eclk.on||!embedLike(curItem)||state.mode!=='own') return;
+  clkPaint();
+  if(clkSecs()>=dur(curItem)){
+    eclk.on=false; advanceOwn(); tune(cur,{noSave:true});
+  }
+}
+
+/* Reproduce un episodio de MEGA o YourUpload. */
+function embedPlay(it,startAt){
+  const cfg=EMBED[it.plat];
+  const m=it.plat==='yu'?yuParse(it.url):it.plat==='uq'?uqParse(it.url):it.plat==='gd'?gdParse(it.url):megaParse(it.url);
+  if(!m||m.folder){ fbFail('El link de '+cfg.name+' no es válido.','Abrir en '+cfg.name); return; }
+  fbBox.innerHTML='<iframe title="'+esc(cfg.name)+'" scrolling="no" frameborder="0" allowfullscreen="true" '
+    +'allow="autoplay; fullscreen; encrypted-media; picture-in-picture" src="'+esc(m.embed)+'"></iframe>';
+  setFbDirect(true); hideMsg(); errStreak=0; started=true;
+  showOsd();
+  if(state.mode==='own'){
+    clkReset(startAt>3?startAt:0);
+    clkPaint();
+    $('#osdL3').textContent=eclk.base>0
+      ? cfg.name+': ponle al video el minuto '+fmtT(eclk.base)+' y dale ▶'
+      : cfg.name+': dale ▶ dentro del video y el reloj arranca solo';
+  }else{
+    setPlayLabel(true);
+    $('#osdL3').textContent=cfg.name+': sin control remoto. Toca ▶ dentro del video.';
+  }
+}
+
+/* ---------- Video directo (MP4/WebM y Archive.org) ---------- */
+const vp=$('#vp');
+let mpTok=0, mpPending=0, mpSeeked=false;
+const VID_EXT=/\.(mp4|m4v|webm|ogv)$/i;
+
+function fileTitle(u){
+  try{
+    const last=decodeURIComponent(u.pathname.split('/').filter(Boolean).pop()||'');
+    return last.replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').trim();
+  }catch(e){return '';}
+}
+function vidParse(raw){
+  let s=String(raw||'').trim().replace(/&amp;/g,'&'), force=false;
+  if(/^(mp4|video):\s*https?:/i.test(s)){ s=s.replace(/^(mp4|video):\s*/i,''); force=true; }
+  if(!s||/\s/.test(s)) return null;
+  let u; try{u=new URL(/^https?:\/\//i.test(s)?s:'https://'+s);}catch(e){return null;}
+  if(!u.hostname.includes('.')) return null;
+  const host=u.hostname.toLowerCase().replace(/^www\./,'');
+  const parts=u.pathname.split('/').filter(Boolean);
+  if(host==='archive.org'){
+    if(parts[0]==='download'&&parts[1]){
+      if(parts.length>2&&VID_EXT.test(u.pathname)) return {kind:'file',url:'https://archive.org'+u.pathname,title:fileTitle(u)};
+      return {kind:'archive',aid:decodeURIComponent(parts[1])};
+    }
+    if((parts[0]==='details'||parts[0]==='embed'||parts[0]==='stream')&&parts[1]) return {kind:'archive',aid:decodeURIComponent(parts[1])};
+    return null;
+  }
+  const byPath=VID_EXT.test(u.pathname);
+  const byQuery=/response-content-type=video(%2F|\/)/i.test(u.search)||/\.(mp4|m4v|webm|ogv)(%22|%3B|"|;|&|$)/i.test(u.search);
+  if(byPath||byQuery||force){
+    if(u.protocol==='http:'&&location.protocol==='https:') u.protocol='https:';
+    return {kind:'file',url:u.href,title:byPath?fileTitle(u):''};
+  }
+  return null;
+}
+function archivePick(j,aid){
+  const meta=(j&&j.metadata)||{};
+  if(meta['access-restricted-item']==='true') return {restricted:true,items:[]};
+  const title=(Array.isArray(meta.title)?meta.title[0]:meta.title)||aid;
+  const files=((j&&j.files)||[]).filter(f=>f&&VID_EXT.test(f.name||''));
+  const g=new Map();
+  for(const f of files){
+    const base=f.name.replace(/\.(ia\.)?(mp4|m4v|webm|ogv)$/i,'').replace(/_(512kb|256kb)$/i,'');
+    const rk=/\.(mp4|m4v)$/i.test(f.name)?0:/\.webm$/i.test(f.name)?1:2, sz=+f.size||0;
+    const c=g.get(base);
+    if(!c||rk<c.rk||(rk===c.rk&&sz>c.sz)) g.set(base,{f,rk,sz});
+  }
+  const list=[...g.values()].map(x=>x.f).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true})).slice(0,300);
+  const items=list.map(f=>{
+    const url='https://archive.org/download/'+encodeURIComponent(aid)+'/'+f.name.split('/').map(encodeURIComponent).join('/');
+    const base=f.name.split('/').pop().replace(/\.[^.]+$/,'').replace(/_+/g,' ').trim();
+    const raw=String(f.length||''), len=raw.includes(':')?(parseMin(raw)||0)*60:parseFloat(raw);
+    return {id:hashId(url),url,title:list.length>1?String(title)+' — '+base:String(title),len:len>0?len:0};
+  });
+  return {restricted:false,items};
+}
+async function archiveResolve(aid){
+  try{
+    const r=await fetch('https://archive.org/metadata/'+encodeURIComponent(aid));
+    if(!r.ok) return null;
+    return archivePick(await r.json(),aid);
+  }catch(e){return null;}
+}
+function probeMp4(url){
+  return new Promise(res=>{
+    const v=document.createElement('video'); v.preload='metadata'; v.muted=true;
+    let done=false, to=0;
+    const fin=x=>{ if(done) return; done=true; clearTimeout(to); v.removeAttribute('src'); try{v.load();}catch(e){} res(x); };
+    to=setTimeout(()=>fin(null),15000);
+    v.onloadedmetadata=()=>fin(isFinite(v.duration)?v.duration:null);
+    v.onerror=()=>fin(null);
+    v.src=url;
+  });
+}
+
+function mpAudio(){
+  try{ vp.muted=!!muted||(state.vol??80)<=0; vp.volume=Math.max(0,Math.min(1,(state.vol??80)/100)); }catch(e){}
+}
+function mpTeardown(){
+  mpTok++;
+  try{vp.pause();}catch(e){}
+  vp.removeAttribute('src'); try{vp.load();}catch(e){}
+}
+function mpPlay(it,startAt){
+  const tok=mpTok; mpPending=startAt>3?startAt:0; mpSeeked=false;
+  mpAudio();
+  vp.src=it.url;
+  const p=vp.play();
+  if(p&&p.catch) p.catch(err=>{
+    if(tok!==mpTok) return;
+    if(err&&err.name==='NotAllowedError'){   // el navegador exige mudo para el autoplay: reintenta en mudo
+      vp.muted=true; const q=vp.play(); if(q&&q.catch) q.catch(()=>{});
+    }
+  });
+}
+function mpLearn(){
+  const d=vp.duration;
+  if(!curItem||!isFinite(d)||d<=3) return;
+  if(d-vp.currentTime>8) endLoop=0;
+  const known=learned[curItem.vid]||(curItem.min||DEF_MIN)*60;
+  if(Math.abs(d-known)>2){
+    learned[curItem.vid]=Math.round(d); saveL();
+    if(state.mode==='live'){
+      clearTimeout(timer);
+      timer=setTimeout(()=>tune(cur,{ahead:.5}),Math.max(1,d-vp.currentTime)*1000+300);
+    }
+    renderGuide();
+  }
+}
+function mpFail(why){
+  const title=curItem?curItem.title:'este video', url=curItem&&curItem.url;
+  const items=lineup()[cur]?.items.length||1;
+  errStreak++;
+  if(errStreak>=items){showMsg('Ningún episodio de este canal se puede reproducir',why,false,url,'Abrir el archivo');return;}
+  showMsg('Saltando «'+title+'»',why,false,url,'Abrir el archivo');
+  clearTimeout(timer);
+  if(state.mode==='live'){
+    const wait=curLoc?Math.max(0,curLoc.end-Date.now()/1000)+.5:1;
+    timer=setTimeout(()=>tune(cur,{ahead:wait}),3500);
+  }else{
+    const k0=cur;
+    timer=setTimeout(()=>{if(cur!==k0) return; advanceOwn(); tune(cur,{noSave:true});},3500);
+  }
+}
+vp.addEventListener('loadedmetadata',()=>{
+  if(!curItem||curItem.plat!=='mp4'||mpSeeked) return;
+  mpSeeked=true;
+  if(mpPending>0&&isFinite(vp.duration)&&mpPending<vp.duration-3){try{vp.currentTime=mpPending;}catch(e){}}
+});
+vp.addEventListener('playing',()=>{
+  if(!curItem||curItem.plat!=='mp4') return;
+  errStreak=0; started=true; hideMsg(); setPlayLabel(true); mpLearn();
+});
+vp.addEventListener('pause',()=>{
+  if(!curItem||curItem.plat!=='mp4'||vp.ended||!vp.currentSrc) return;
+  setPlayLabel(false); saveProgress();
+});
+vp.addEventListener('ended',()=>{
+  if(!curItem||curItem.plat!=='mp4') return;
+  const d=vp.duration; if(isFinite(d)&&d>3){learned[curItem.vid]=Math.round(d);saveL();}
+  if(state.mode==='live'){
+    endLoop++;
+    const skip=(endLoop>3&&curLoc)?Math.max(0,curLoc.end-Date.now()/1000)+.5:.5;
+    tune(cur,{ahead:skip});
+  }else{advanceOwn();tune(cur,{noSave:true});}
+});
+vp.addEventListener('error',()=>{
+  if(!curItem||curItem.plat!=='mp4'||!vp.getAttribute('src')) return;
+  const c=vp.error&&vp.error.code;
+  mpFail(c===2?'Se cortó la conexión al cargar el video.'
+    :c===3?'El navegador no pudo decodificar el video.'
+    :'El navegador no puede reproducir este archivo, o el enlace ya no existe o pide permiso.');
+});
+
+/* Reproductor auxiliar: sirve para leer playlists y duraciones (YouTube) */
+function probeVideo(vid){
+  return new Promise(res=>{
+    if(!probeReady) return res(null);
+    let done=false;
+    const fin=v=>{if(done)return;done=true;probeCb=null;clearTimeout(to);res(v);};
+    const to=setTimeout(()=>fin(null),9000);
+    probeCb=(type,data)=>{
+      if(type==='state'&&(data===5||data===1||data===3)){
+        let d=0;try{d=probe.getDuration();}catch(e){}
+        if(d>0){try{probe.stopVideo();}catch(e){} fin(d);}
+      }else if(type==='error') fin(null);
+    };
+    try{probe.cueVideoById(vid);}catch(e){fin(null);}
+  });
+}
+function probePlaylist(list){
+  return new Promise(res=>{
+    if(!probeReady) return res(null);
+    let done=false;
+    const fin=v=>{if(done)return;done=true;probeCb=null;clearTimeout(to);res(v);};
+    const to=setTimeout(()=>fin(null),12000);
+    probeCb=(type,data)=>{
+      if(type==='state'&&data===5){
+        let ids=null;try{ids=probe.getPlaylist();}catch(e){}
+        fin(ids&&ids.length?ids:null);
+      }else if(type==='error') fin(null);
+    };
+    try{probe.cuePlaylist({listType:'playlist',list:list});}catch(e){fin(null);}
+  });
+}
+
+/* ---------- Avance guardado (modo "a mi ritmo") ---------- */
+function chKey(i){const ch=lineup()[i]; return ch?(ch.key||'mix'):null;}
+function saveProgress(){
+  if(!powered||state.mode!=='own'||!curItem||!started) return;
+  let t=0;
+  if(curItem.plat==='vm'){ if(vmBasic){ if(!eclk.touched) return; t=clkSecs(); } else { if(!vmInst) return; t=vmCur.t; } }
+  else if(isEmbed(curItem)){ if(!eclk.touched) return; t=clkSecs(); }
+  else if(curItem.plat==='mp4'){ if(!vp.currentSrc) return; t=vp.currentTime; }
+  else if(curItem.plat==='fb'){ if(!fbInst) return; try{t=fbInst.getCurrentPosition();}catch(e){return;} }
+  else if(curItem.plat==='tt'){ if(!ttReady) return; t=ttCur.t; }
+  else{ if(!ready) return; try{t=player.getCurrentTime();}catch(e){return;} }
+  if(!(t>=0)) return;
+  const k=chKey(cur); if(!k) return;
+  if(k==='mix'){
+    if(state.mix.cur&&state.mix.cur.vid===curItem.vid) state.mix.cur.t=Math.floor(t);
+  }else state.progress[k]={vid:curItem.vid,t:Math.floor(t)};
+  save();
+}
+function getProgress(ch,k){
+  const p=state.progress[k]; let i=0,t=0;
+  if(p){const j=ch.items.findIndex(x=>x.vid===p.vid); if(j>=0){i=j;t=Math.max(0,p.t-3);}}
+  return {i,t};
+}
+function setNext(ch,k,i){
+  state.progress[k]={vid:ch.items[(i+1)%ch.items.length].vid,t:0}; save();
+}
+const fmtT=s=>{s=Math.max(0,Math.floor(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+
+/* ---------- Mezcla: programación tipo televisión ---------- */
+/* Cada serie lleva su propio contador. Solo se elige entre las series que van
+   más atrás, así todas pasan el episodio 1, luego el 2, etc. Al azar, una serie
+   puede dar 2 o 3 episodios seguidos (y luego espera a que las demás la alcancen). */
+function mixItem(c){
+  const ch=state.channels.find(x=>x.id===c.cid); if(!ch) return null;
+  return ch.items.find(x=>x.vid===c.vid)||null;
+}
+function mixPick(){
+  const m=state.mix, list=state.channels.filter(c=>c.items.length);
+  if(!list.length) return null;
+  let cid;
+  if(m.runLeft>0&&m.cur&&list.some(c=>c.id===m.cur.cid)){
+    cid=m.cur.cid; m.runLeft--;
+  }else{
+    const cnt=c=>m.ptr[c.id]||0, min=Math.min(...list.map(cnt));
+    let cand=list.filter(c=>cnt(c)===min);
+    if(cand.length>1&&m.cur){const o=cand.filter(c=>c.id!==m.cur.cid); if(o.length) cand=o;}
+    cid=cand[Math.floor(Math.random()*cand.length)].id;
+    const r=Math.random(); m.runLeft=r<.65?0:(r<.9?1:2);
+  }
+  const ch=list.find(c=>c.id===cid), n=m.ptr[cid]||0;
+  m.ptr[cid]=n+1;
+  m.cur={cid,n,vid:ch.items[n%ch.items.length].vid,t:0};
+  save();
+  return m.cur;
+}
+function mixCurrent(){
+  const m=state.mix;
+  if(m.cur&&mixItem(m.cur)) return m.cur;
+  m.runLeft=0; m.cur=null;
+  return mixPick();
+}
+function mixMeta(c){
+  const sc=state.channels.find(x=>x.id===c.cid); if(!sc) return null;
+  const num=(c.n%sc.items.length)+1;
+  return {text:((c.t>5||num>1)?'Sigue ':'Empieza ')+sc.name+', episodio '+num};
+}
+function advanceOwn(){
+  const k=chKey(cur), ch=lineup()[cur];
+  if(k==='mix'){mixPick();return;}
+  if(ch&&curItem){const i=ch.items.indexOf(curItem); setNext(ch,k,i<0?0:i);}
+}
+
+/* ---------- Sintonizar ---------- */
+function tune(idx,opts={}){
+  const chs=lineup(); if(!chs.length) return;
+  if(!opts.noSave) saveProgress();
+  cur=((idx%chs.length)+chs.length)%chs.length;
+  if(!opts.quiet){state.ch=cur;save();}
+  clearTimeout(timer); fbTeardown(); mpTeardown(); vmTeardown(); megaUi(false);
+  updatePanel(); renderGuide();
+  if(!powered) return;
+  const ch=chs[cur];
+  if(!ch.items.length){
+    curItem=null; curLoc=null;
+    try{ready&&player.stopVideo();}catch(e){}
+    try{ttFrame.src='about:blank';}catch(e){}
+    burst(500);
+    showMsg('Este canal todavía no tiene episodios','Abre el editor y pega tus links de YouTube, TikTok, Facebook o un link directo a video.',true);
+    showOsd(); return;
+  }
+  let startAt=0; curMeta=null;
+  if(state.mode==='live'){
+    const t=Date.now()/1000+(opts.ahead||0);
+    curLoc=locate(ch.items,t); curItem=ch.items[curLoc.i]; startAt=curLoc.offset;
+  }else if(chKey(cur)==='mix'){
+    const c=mixCurrent(); curLoc=null; curItem=mixItem(c); curMeta=mixMeta(c); startAt=c.t>5?c.t-3:0;
+  }else{
+    const p=getProgress(ch,chKey(cur)); curLoc=null; curItem=ch.items[p.i]; startAt=p.t;
+  }
+  showOsd();
+  started=false;
+  if(isEmbed(curItem)){
+    showPlat(curItem.plat);
+    try{ready&&player.stopVideo();}catch(e){}
+    try{ttFrame.src='about:blank';}catch(e){}
+    hideMsg(); burst(opts.ahead?350:700);
+    embedPlay(curItem,startAt);
+  }else if(curItem.plat==='mp4'){
+    showPlat('mp4');
+    try{ready&&player.stopVideo();}catch(e){}
+    try{ttFrame.src='about:blank';}catch(e){}
+    hideMsg(); burst(opts.ahead?350:700);
+    mpPlay(curItem,startAt);
+  }else if(curItem.plat==='fb'){
+    showPlat('fb');
+    try{ready&&player.stopVideo();}catch(e){}
+    try{ttFrame.src='about:blank';}catch(e){}
+    hideMsg(); burst(opts.ahead?350:700);
+    fbPlay(curItem,startAt);
+  }else if(curItem.plat==='vm'){
+    showPlat('vm');
+    try{ready&&player.stopVideo();}catch(e){}
+    try{ttFrame.src='about:blank';}catch(e){}
+    hideMsg(); burst(opts.ahead?350:700);
+    vmPlay(curItem,startAt);
+  }else if(curItem.plat==='tt'){
+    showPlat('tt');
+    try{ready&&player.stopVideo();}catch(e){}
+    ttReady=false; ttRetried=false; ttCur={t:0,d:0,st:-1};
+    ttPendingSeek=startAt>0?Math.floor(startAt):null;
+    hideMsg(); burst(opts.ahead?350:700);
+    ttFrame.src=ttURL(curItem.vid);
+  }else{
+    showPlat('yt');
+    try{ttFrame.src='about:blank';}catch(e){}
+    if(apiFailed){showMsg('No se pudo cargar YouTube','Revisa tu conexión a internet y recarga la página.');return;}
+    if(!ready){showMsg('Conectando con YouTube…','');return;}
+    hideMsg(); burst(opts.ahead?350:700);
+    try{
+      player.loadVideoById({videoId:curItem.vid,startSeconds:Math.floor(startAt)});
+      if(muted)player.mute(); else player.unMute();
+    }catch(e){}
+  }
+  if(state.mode==='live') timer=setTimeout(()=>tune(cur,{ahead:.5}),Math.max(1000,(curLoc.end-Date.now()/1000)*1000));
+}
+
+function power(on){
+  powered=on;
+  screen.classList.toggle('on',on);
+  $('#power').setAttribute('aria-pressed',on);
+  if(on){
+    if(!reduce){screen.classList.add('boot');setTimeout(()=>screen.classList.remove('boot'),600);}
+    tune(cur,{quiet:true});
+    clearTimeout(wd);
+    if(!ready) wd=setTimeout(()=>{
+      if(powered&&!ready&&!apiFailed&&curItem&&(!curItem.plat||curItem.plat==='yt')) showMsg('YouTube bloqueó el reproductor (error 153)','Pasa cuando la página se abre directo desde el archivo o desde un visor. Súbela a un hosting con https (GitHub Pages o Netlify) y ábrela desde ahí.');
+    },8000);
+  }else{
+    saveProgress(); fbTeardown(); mpTeardown(); vmTeardown(); megaUi(false); clearTimeout(wd); clearTimeout(timer); hideMsg(); osd.classList.remove('show');
+    try{ready&&player.stopVideo();}catch(e){}
+    try{ttFrame.src='about:blank';}catch(e){} ttReady=false;
+  }
+}
+
+/* ---------- Pantalla ---------- */
+function showMsg(h,p,btn,link,label){
+  msg.innerHTML='<div><h3>'+esc(h)+'</h3><p>'+esc(p||'')+'</p>'+(btn?'<button class="btn primary" data-open="1">Abrir el editor</button>':'')+(link?'<a class="btn primary" href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(label||'Abrir en Facebook')+'</a>':'')+'</div>';
+  msg.classList.add('show');
+}
+function hideMsg(){msg.classList.remove('show');}
+function showOsd(){
+  const ch=lineup()[cur]; if(!ch) return;
+  $('#osdL1').textContent='CH '+String(cur+1).padStart(2,'0')+'  '+ch.name;
+  $('#osdL2').textContent=curMeta?curMeta.text:(curItem?curItem.title:'');
+  $('#osdL3').textContent=(curMeta&&curItem)?curItem.title:'';
+  osd.classList.add('show'); clearTimeout(osdT);
+  osdT=setTimeout(()=>osd.classList.remove('show'),curMeta?7000:4500);
+}
+const nz=$('#noise'), nctx=nz.getContext('2d');
+let noiseUntil=0, raf=0;
+function burst(ms){
+  if(reduce||screen.classList.contains('lite')) return;
+  noiseUntil=performance.now()+ms; nz.style.opacity=1;
+  if(!raf) raf=requestAnimationFrame(drawNoise);
+}
+function drawNoise(t){
+  if(t>noiseUntil){nz.style.opacity=0;raf=0;return;}
+  const img=nctx.createImageData(192,108), d=img.data;
+  for(let i=0;i<d.length;i+=4){const v=Math.random()*255|0;d[i]=d[i+1]=d[i+2]=v;d[i+3]=255;}
+  nctx.putImageData(img,0,0);
+  raf=requestAnimationFrame(drawNoise);
+}
+
+/* ---------- Panel y guía ---------- */
+function updatePanel(){
+  $('#led').textContent=String(cur+1).padStart(2,'0');
+  $('#knob').style.transform='rotate('+(cur*40)+'deg)';
+  $('#brand').textContent=state.station;
+  document.title=state.station;
+}
+function renderGuide(){
+  const chs=lineup(), t=Date.now()/1000, own=state.mode==='own';
+  $('#rows').innerHTML=chs.map((ch,i)=>{
+    const num=String(i+1).padStart(2,'0');
+    const cu=i===cur?' aria-current="true"':'';
+    if(!ch.items.length) return '<button class="row" data-ch="'+i+'"'+cu+'><span class="num">'+num+'</span><span class="txt"><b>'+esc(ch.name)+'</b><small>Sin episodios todavía</small></span></button>';
+    let now,pct,next;
+    if(own&&ch.key==='mix'){
+      const c=state.mix.cur, it=c&&mixItem(c), sc=c&&state.channels.find(x=>x.id===c.cid);
+      if(it&&sc){
+        now=sc.name+', episodio '+(c.n%sc.items.length+1)+': '+it.title;
+        pct=Math.min(100,c.t/dur(it)*100);
+        next=c.t>5?'Vas en el minuto '+fmtT(c.t):'Empieza desde el inicio';
+      }else{
+        now='Todas las series, empezando por el episodio 1';
+        pct=0; next='Se elige el orden al azar';
+      }
+    }else if(own){
+      const p=getProgress(ch,ch.key||'mix'), it=ch.items[p.i];
+      now='Episodio '+(p.i+1)+' de '+ch.items.length+': '+it.title;
+      pct=Math.min(100,p.t/dur(it)*100);
+      next=p.t>5?'Vas en el minuto '+fmtT(p.t):'Empieza desde el inicio';
+    }else{
+      const loc=locate(ch.items,t), up=upcoming(ch.items,t,2);
+      now='Ahora: '+ch.items[loc.i].title;
+      pct=Math.min(100,Math.max(0,(t-loc.start)/(loc.end-loc.start)*100));
+      next=ch.items.length>1?'Sigue a las '+fmt(up[1].start)+': '+up[1].it.title:'Vuelve a empezar a las '+fmt(loc.end);
+    }
+    return '<button class="row" data-ch="'+i+'"'+cu+'><span class="num">'+num+'</span><span class="txt"><b>'+esc(ch.name)+'</b>'
+      +'<span class="now">'+esc(now)+'</span>'
+      +'<span class="bar"><i style="width:'+pct+'%"></i></span>'
+      +'<small>'+esc(next)+'</small></span></button>';
+  }).join('');
+}
+
+/* ---------- Editor ---------- */
+const dlg=$('#editor');
+let edCh=0, busy=false;
+const setStatus=s=>{$('#edStatus').textContent=s||'';};
+
+function ytId(s){
+  const m=s.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/);
+  if(m) return m[1];
+  return /^[A-Za-z0-9_-]{11}$/.test(s)?s:null;
+}
+function ttId(s){
+  const m=s.match(/tiktok\.com\/(?:@[^/?#]+\/video|player\/v1)\/(\d{6,20})/);
+  if(m) return m[1];
+  return /^\d{15,20}$/.test(s)?s:null;
+}
+function isTtLink(s){return /tiktok\.com/.test(s);}
+async function ttResolve(url){
+  try{
+    const r=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url));
+    if(!r.ok) return null;
+    const j=await r.json();
+    const m=(j.html||'').match(/data-video-id="(\d+)"/);
+    if(m) return {id:m[1],title:j.title||''};
+  }catch(e){}
+  return null;
+}
+function parseMin(s){
+  if(!s) return null;
+  if(s.includes(':')){const p=s.split(':').map(Number); if(p.some(isNaN)) return null; return p.length===3?p[0]*60+p[1]+p[2]/60:p[0]+p[1]/60;}
+  const n=parseFloat(s.replace(',','.')); return isNaN(n)?null:n;
+}
+function renderEditor(){
+  $('#stName').value=state.station;
+  $('#fxSel').value=state.fx; $('#fbMethodSel').value=state.fbMethod; $('#fbApp').value=state.fbApp||'';
+  if(edCh>=state.channels.length) edCh=0;
+  $('#edCh').innerHTML=state.channels.map((c,i)=>'<option value="'+i+'">'+esc(c.name)+' ('+c.items.length+')</option>').join('');
+  $('#edCh').value=edCh;
+  const ch=state.channels[edCh], ul=$('#edItems');
+  if(!ch){ul.innerHTML='<li class="empty">Crea un canal para empezar.</li>';return;}
+  ul.innerHTML=ch.items.length?ch.items.map((it,i)=>
+    '<li data-i="'+i+'">'+(it.plat==='tt'?'<span class="pl">TikTok</span>':it.plat==='fb'?'<span class="pl">Facebook</span>':it.plat==='vm'?'<span class="pl">Vimeo</span>':it.plat==='mp4'?'<span class="pl">Archivo</span>':it.plat==='mega'?'<span class="pl">MEGA</span>':it.plat==='yu'?'<span class="pl">YourUpload</span>':it.plat==='uq'?'<span class="pl">Uqload</span>':it.plat==='gd'?'<span class="pl">Google Drive</span>':'')
+    +'<input class="t" type="text" value="'+esc(it.title)+'" aria-label="Título">'
+    +'<input class="m" type="number" min="1" step="0.5" value="'+(+(dur(it)/60).toFixed(1))+'" aria-label="Minutos">'
+    +'<button class="btn" data-a="up" aria-label="Subir">▲</button>'
+    +'<button class="btn" data-a="dn" aria-label="Bajar">▼</button>'
+    +'<button class="btn" data-a="rm" aria-label="Quitar">✕</button></li>'
+  ).join(''):'<li class="empty">Este canal está vacío. Pega links arriba.</li>';
+}
+function openEditor(){renderEditor();setStatus('');dlg.showModal();}
+function afterEdit(){save();saveL();dirty=true;renderEditor();renderGuide();updatePanel();}
+
+async function addLines(){
+  const ch=state.channels[edCh]; if(!ch||busy) return;
+  const lines=$('#addBox').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){setStatus('Pega al menos un link.');return;}
+  busy=true; setBusy(true);
+  let added=0; const bad=[];
+  const push=(vid,title,min,plat,url)=>{
+    if(ch.items.some(x=>x.vid===vid)) return;
+    plat=plat||'yt';
+    ch.items.push({vid,title:title||('Episodio '+(ch.items.length+1)),min:min||(plat==='tt'?DEF_MIN_TT:plat==='fb'?DEF_MIN_FB:DEF_MIN),auto:!title,plat,url:url||''});
+    added++;
+  };
+  for(const ln of lines){
+    const [link,title,mins]=ln.split('|').map(s=>s.trim());
+    const isList=/[?&]list=/.test(link)&&!/[?&]v=|youtu\.be\//.test(link);
+    if(isList){
+      setStatus('Leyendo la playlist…');
+      const id=link.match(/[?&]list=([A-Za-z0-9_-]+)/)[1];
+      const ids=await probePlaylist(id);
+      if(!ids) bad.push('No pude leer la playlist (¿es pública?)');
+      else ids.forEach(v=>push(v,'',null,'yt'));
+    }else{
+      const tid=ttId(link);
+      if(tid){ push(tid,title,parseMin(mins),'tt',link); }
+      else if(isTtLink(link)){
+        setStatus('Resolviendo enlace corto de TikTok…');
+        const rid=await ttResolve(link);
+        if(rid) push(rid.id,title||rid.title,parseMin(mins),'tt',link);
+        else bad.push(link.slice(0,50)+' (no se pudo resolver)');
+      }else{
+        const fbp=fbParse(link);
+        if(fbp){ push(fbp.id,title,parseMin(mins),'fb',fbp.url); continue; }
+        const mg=megaParse(link);
+        if(mg){
+          if(mg.folder) bad.push('MEGA: las carpetas no se pueden; abre el archivo y copia su link (mega.nz/file/…)');
+          else push(mg.id,title,parseMin(mins),'mega',mg.url);
+          continue;
+        }
+        const yu=yuParse(link);
+        if(yu){ push(yu.id,title,parseMin(mins),'yu',yu.url); continue; }
+        const uq=uqParse(link);
+        if(uq){ push(uq.id,title,parseMin(mins),'uq',uq.url); continue; }
+        const gd=gdParse(link);
+        if(gd){ push(gd.id,title,parseMin(mins),'gd',gd.url); continue; }
+        const vm=vmParse(link);
+        if(vm){ push(vm.id,title,parseMin(mins),'vm',vm.url); continue; }
+        const av=vidParse(link);
+        if(av){
+          if(av.kind==='file'){ push(hashId(av.url),title||av.title||'Video',parseMin(mins),'mp4',av.url); continue; }
+          setStatus('Leyendo Archive.org…');
+          const r=await archiveResolve(av.aid);
+          if(!r) bad.push('Archive.org: no pude leer «'+av.aid+'». Prueba con el link directo (archive.org/download/…/archivo.mp4)');
+          else if(r.restricted) bad.push('Archive.org: «'+av.aid+'» es de acceso restringido (pide préstamo o cuenta)');
+          else if(!r.items.length) bad.push('Archive.org: «'+av.aid+'» no tiene videos MP4/WebM reproducibles');
+          else r.items.forEach(f=>{
+            if(f.len) learned[f.id]=Math.round(f.len);
+            push(f.id,(title&&r.items.length===1)?title:f.title,f.len?f.len/60:parseMin(mins),'mp4',f.url);
+          });
+          continue;
+        }
+        const vid=ytId(link);
+        if(vid) push(vid,title,parseMin(mins),'yt',link); else bad.push(link.slice(0,50));
+      }
+    }
+  }
+  $('#addBox').value='';
+  busy=false; setBusy(false); afterEdit();
+  setStatus('Agregados: '+added+(bad.length?'. No reconocí: '+bad.join(', '):'.'));
+  if(added) enrich(ch);
+}
+async function enrich(ch){
+  if(busy) return;
+  busy=true; setBusy(true);
+  const todo=ch.items.filter(it=>it.plat!=='fb'&&!isEmbed(it)&&(it.auto||(it.plat!=='tt'&&!learned[it.vid])));
+  let n=0;
+  for(const it of todo){
+    n++; setStatus('Detectando datos '+n+' de '+todo.length+'…');
+    if(it.auto){
+      try{
+        if(it.plat==='tt'){
+          const url=it.url||('https://www.tiktok.com/@_/video/'+it.vid);
+          const r=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url));
+          if(r.ok){const j=await r.json(); if(j.title){it.title=j.title;it.auto=false;}}
+        }else if(it.plat!=='vm'){
+          const r=await fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent('https://www.youtube.com/watch?v='+it.vid));
+          if(r.ok){const j=await r.json(); if(j.title){it.title=j.title;it.auto=false;}}
+        }
+      }catch(e){}
+    }
+    if(it.plat==='mp4'){ if(!learned[it.vid]){const d=await probeMp4(it.url); if(d>3) learned[it.vid]=Math.round(d);} }
+    else if(it.plat==='vm'){
+      if(it.auto||!learned[it.vid]){
+        try{
+          const r=await fetch('https://vimeo.com/api/oembed.json?url='+encodeURIComponent(it.url||('https://vimeo.com/'+it.vid)));
+          if(r.ok){const j=await r.json(); if(it.auto&&j.title){it.title=j.title;it.auto=false;} if(j.duration>3) learned[it.vid]=Math.round(j.duration);}
+        }catch(e){}
+      }
+    }
+    else if(it.plat!=='tt'&&!learned[it.vid]){const d=await probeVideo(it.vid); if(d>30) learned[it.vid]=Math.round(d);}
+    if(n%3===0){save();saveL();if(dlg.open)renderEditor();}
+  }
+  busy=false; setBusy(false); afterEdit();
+  setStatus('Listo. Si alguna duración no se detectó, se corrige sola la primera vez que se reproduzca.');
+}
+function setBusy(b){['addBtn','detBtn'].forEach(id=>{$('#'+id).disabled=b;});}
+
+/* ---------- Eventos ---------- */
+$('#wake').onclick=()=>power(true);
+$('#power').onclick=()=>power(!powered);
+$('#chUp').onclick=()=>tune(cur+1);
+$('#chDn').onclick=()=>tune(cur-1);
+$('#knob').onclick=()=>tune(cur+1);
+$('#shield').onclick=()=>{
+  if(!powered) return;
+  if(curItem&&curItem.plat==='tt'&&ttReady) ttWantSound();   // el toque cuenta como permiso para el sonido
+  if(curItem&&curItem.plat==='fb'&&fbInst) fbWantSound();
+  if(curItem&&curItem.plat==='vm'&&vmInst) vmWantSound();
+  if(curItem&&curItem.plat==='mp4') mpAudio();
+  if(state.mode==='own'&&!embedLike(curItem)) pp();
+  showOsd();
+};
+function pp(){
+  if(!powered||!curItem) return;
+  if(embedLike(curItem)){ clkToggle(); return; }
+  if(curItem.plat==='mp4'){ try{ if(vp.paused) vp.play(); else vp.pause(); }catch(e){} }
+  else if(curItem.plat==='fb'){ if(fbInst){try{if(fbPlaying) fbInst.pause(); else fbInst.play();}catch(e){}} }
+  else if(curItem.plat==='vm'){ if(vmInst){try{if(vmPlaying) vmInst.pause(); else vmInst.play();}catch(e){}} }
+  else if(curItem.plat==='tt'){ if(ttReady) ttSend(ttCur.st===1?'pause':'play'); }
+  else{ if(!ready) return; try{player.getPlayerState()===1?player.pauseVideo():player.playVideo();}catch(e){} }
+}
+function seek(d){
+  if(!curItem) return;
+  if(embedLike(curItem)){ clkSet(clkSecs()+d); return; }
+  if(curItem.plat==='mp4'){ try{ vp.currentTime=Math.max(0,vp.currentTime+d); }catch(e){} }
+  else if(curItem.plat==='fb'){ if(fbInst){try{fbInst.seek(Math.max(0,fbInst.getCurrentPosition()+d));}catch(e){}} }
+  else if(curItem.plat==='vm'){ if(vmInst){try{vmInst.getCurrentTime().then(t=>{try{vmInst.setCurrentTime(Math.max(0,t+d));}catch(e){}});}catch(e){}} }
+  else if(curItem.plat==='tt'){ if(ttReady) ttSend('seekTo',Math.max(0,ttCur.t+d)); }
+  else{ try{player.seekTo(Math.max(0,player.getCurrentTime()+d),true);}catch(e){} }
+}
+function stepEp(dir){
+  if(state.mode!=='own'||!curItem) return;
+  if(chKey(cur)==='mix'){
+    if(dir>0) mixPick(); else if(state.mix.cur) state.mix.cur.t=0;
+    save(); tune(cur,{noSave:true}); return;
+  }
+  const ch=lineup()[cur], n=ch.items.length, i=ch.items.indexOf(curItem);
+  const k=(((i<0?0:i)+dir)%n+n)%n;
+  state.progress[chKey(cur)]={vid:ch.items[k].vid,t:0}; save();
+  tune(cur,{noSave:true});
+}
+$('#playPause').onclick=pp;
+$('#back10').onclick=()=>seek(-10);
+$('#fwd10').onclick=()=>seek(10);
+$('#prevEp').onclick=()=>stepEp(-1);
+$('#nextEp').onclick=()=>stepEp(1);
+function syncCC(){
+  const b=$('#cc'); b.setAttribute('aria-pressed',state.cc);
+  b.textContent=state.cc?'Subtítulos: sí':'Subtítulos: no';
+}
+$('#cc').onclick=()=>{state.cc=!state.cc;save();syncCC();applyCC();};
+syncCC();
+$('#rows').onclick=e=>{const b=e.target.closest('[data-ch]'); if(b) tune(+b.dataset.ch);};
+msg.onclick=e=>{if(e.target.dataset.open) openEditor();};
+$('#openEd').onclick=openEditor;
+$('#edClose').onclick=()=>dlg.close();
+dlg.addEventListener('close',()=>{if(dirty){dirty=false; if(powered) tune(cur,{quiet:true}); else {updatePanel();renderGuide();}}});
+
+$('#vol').value=state.vol??80;
+$('#vol').oninput=e=>{
+  state.vol=+e.target.value;save();
+  try{player&&ready&&player.setVolume(state.vol);}catch(x){}
+  if(curItem&&curItem.plat==='tt'&&ttReady) ttWantSound();
+  fbWantSound(); mpAudio(); vmWantSound();
+};
+function toggleMute(){
+  muted=!muted; $('#mute').setAttribute('aria-pressed',muted);
+  $('#mute').textContent=muted?'Con sonido':'Silencio';
+  try{ready&&(muted?player.mute():player.unMute());}catch(e){}
+  if(ttReady) ttWantSound();
+  fbWantSound(); mpAudio(); vmWantSound();
+}
+$('#mute').onclick=toggleMute;
+function fullscreen(){
+  try{(screen.requestFullscreen||screen.webkitRequestFullscreen).call(screen);}catch(e){}
+}
+$('#full').onclick=fullscreen;
+$('#clk').onclick=()=>{
+  if(!embedLike(curItem)) return;
+  const v=prompt('¿En qué minuto va el video? Escribe mm:ss (por ejemplo 12:30).',fmtT(clkSecs()));
+  if(v===null) return;
+  const m=parseMin(v.trim());
+  if(m===null||m<0){alert('No entendí ese minuto. Usa el formato mm:ss, por ejemplo 12:30.');return;}
+  clkSet(Math.round(m*60));
+};
+$('#clkEnd').onclick=()=>{
+  if(!embedLike(curItem)) return;
+  const t=Math.round(clkSecs());
+  if(t>=30){learned[curItem.vid]=t; saveL();}   // así la próxima vez ya sabe cuánto dura de verdad
+  advanceOwn(); tune(cur,{noSave:true});
+};
+/* Cuando tocas dentro del iframe, la ventana pierde el foco: la primera vez que
+   pasa en un episodio, se arranca el reloj (es el ▶ del reproductor). */
+addEventListener('blur',()=>{
+  setTimeout(()=>{
+    const f=fbBox.querySelector('iframe');
+    if(f&&document.activeElement===f&&embedLike(curItem)&&state.mode==='own'&&!eclk.on&&!eclk.ran) clkToggle();
+  },0);
+});
+setInterval(clkTick,500);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) clkTick();});
+
+document.addEventListener('keydown',e=>{
+  if(dlg.open||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if(e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();tune(cur+1);}
+  else if(e.key==='ArrowDown'||e.key==='PageDown'){e.preventDefault();tune(cur-1);}
+  else if(/^[1-9]$/.test(e.key)&&+e.key<=lineup().length){tune(+e.key-1);}
+  else if(e.key==='m'||e.key==='M') toggleMute();
+  else if(e.key==='f'||e.key==='F') fullscreen();
+  else if(e.key===' '&&state.mode==='own'){e.preventDefault();pp();}
+  else if(e.key==='ArrowLeft'&&state.mode==='own') seek(-10);
+  else if(e.key==='ArrowRight'&&state.mode==='own') seek(10);
+});
+
+$('#stName').oninput=e=>{state.station=e.target.value||'Canal Retro';save();updatePanel();};
+$('#edCh').onchange=e=>{edCh=+e.target.value;renderEditor();};
+$('#chNew').onclick=()=>{
+  const n=prompt('Nombre del nuevo canal:'); if(!n||!n.trim()) return;
+  state.channels.push({id:'c'+Date.now(),name:n.trim(),items:[]}); edCh=state.channels.length-1; afterEdit();
+};
+$('#chRen').onclick=()=>{
+  const ch=state.channels[edCh]; if(!ch) return;
+  const n=prompt('Nuevo nombre:',ch.name); if(!n||!n.trim()) return; ch.name=n.trim(); afterEdit();
+};
+$('#chDel').onclick=()=>{
+  const ch=state.channels[edCh]; if(!ch) return;
+  if(!confirm('¿Borrar el canal «'+ch.name+'» y sus episodios?')) return;
+  state.channels.splice(edCh,1); edCh=0; if(cur>=lineup().length) cur=0; afterEdit();
+};
+$('#modeSel').value=state.mode;
+$('#modeSel').onchange=e=>{
+  saveProgress(); state.mode=e.target.value; save();
+  $('#tv').dataset.mode=state.mode; dirty=true; renderGuide();
+};
+$('#chReset').onclick=()=>{
+  const ch=state.channels[edCh]; if(!ch) return;
+  delete state.progress[ch.id];
+  if(chKey(cur)===ch.id) started=false;
+  afterEdit(); setStatus('Avance reiniciado: «'+ch.name+'» empezará desde el episodio 1.');
+};
+$('#mixReset').onclick=()=>{
+  state.mix={ptr:{},cur:null,runLeft:0};
+  if(chKey(cur)==='mix') started=false;
+  afterEdit(); setStatus('Mezcla reiniciada: empezará otra vez con el episodio 1 de cada serie.');
+};
+$('#fxSel').onchange=e=>{state.fx=e.target.value;save();applyFx(curPlat);setStatus('Efectos guardados.');};
+$('#fbMethodSel').onchange=e=>{state.fbMethod=e.target.value;save();dirty=true;setStatus('Método de Facebook guardado.');};
+$('#fbApp').oninput=e=>{state.fbApp=e.target.value.replace(/\D/g,'');save();};
+$('#fbOpen').onclick=()=>{
+  if(!curItem||(curItem.plat!=='fb'&&curItem.plat!=='vm'&&!isEmbed(curItem))||!curItem.url) return;
+  try{fbInst&&fbInst.pause();}catch(e){}
+  try{vmInst&&vmInst.pause();}catch(e){}
+  window.open(curItem.url,'_blank','noopener');
+};
+$('#fbCtl').onclick=()=>setFbDirect(!fbDirect);
+$('#addBtn').onclick=addLines;
+$('#detBtn').onclick=()=>{const ch=state.channels[edCh]; if(ch&&ch.items.length) enrich(ch); else setStatus('Este canal no tiene episodios.');};
+
+$('#edItems').addEventListener('input',e=>{
+  const li=e.target.closest('li[data-i]'); if(!li) return;
+  const it=state.channels[edCh].items[+li.dataset.i];
+  if(e.target.classList.contains('t')){it.title=e.target.value;it.auto=false;save();dirty=true;}
+});
+$('#edItems').addEventListener('change',e=>{
+  const li=e.target.closest('li[data-i]'); if(!li||!e.target.classList.contains('m')) return;
+  const it=state.channels[edCh].items[+li.dataset.i], v=parseFloat(e.target.value);
+  if(v>0){it.min=v; delete learned[it.vid]; afterEdit();}
+});
+$('#edItems').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]'); if(!b) return;
+  const items=state.channels[edCh].items, i=+b.closest('li').dataset.i;
+  if(b.dataset.a==='rm') items.splice(i,1);
+  else if(b.dataset.a==='up'&&i>0) [items[i-1],items[i]]=[items[i],items[i-1]];
+  else if(b.dataset.a==='dn'&&i<items.length-1) [items[i+1],items[i]]=[items[i],items[i+1]];
+  afterEdit();
+});
+
+/* El respaldo con cientos de links de MEGA pasa de los ~65 mil caracteres que
+   aguanta un mensaje de WhatsApp, que corta el sobrante sin avisar (y el
+   respaldo queda incompleto). Por eso se comparte como archivo. */
+function bkPayload(forShare){
+  const st=JSON.parse(JSON.stringify(state));
+  if(forShare){ delete st.progress; delete st.mix; }   // tu avance y tu mezcla en curso son tuyos
+  return JSON.stringify({state:st,learned});
+}
+$('#bkCopy').onclick=async()=>{
+  const txt=bkPayload(false);
+  $('#bkBox').value=txt;
+  const long=txt.length>60000;
+  try{
+    await navigator.clipboard.writeText(txt);
+    setStatus(long?'Respaldo copiado, pero es muy largo para pegarlo en WhatsApp (se corta). Para mandarlo usa «Compartir respaldo».':'Respaldo copiado.');
+  }catch(e){$('#bkBox').select();setStatus('Copia el texto de la caja.'+(long?' Ojo: es muy largo para WhatsApp; usa «Compartir respaldo».':''));}
+};
+$('#bkShare').onclick=async()=>{
+  const file=new File([bkPayload(true)],'canal-retro-respaldo.txt',{type:'text/plain'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'Respaldo de Canal Retro'});
+      setStatus('Listo: elige WhatsApp para mandarlo.'); return;
+    }
+  }catch(e){ if(e&&e.name==='AbortError') return; }
+  // sin menú de compartir (por ejemplo en computadora): se descarga el archivo
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(file); a.download=file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  setStatus('Se descargó «'+file.name+'». Mándalo por WhatsApp como archivo (documento).');
+};
+$('#bkFile').onchange=async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value='';
+  if(!f) return;
+  try{ $('#bkBox').value=await f.text(); }catch(err){ setStatus('No pude leer ese archivo.'); return; }
+  $('#bkLoad').click();
+};
+function bkParse(raw){
+  const t=String(raw||'').replace(/^\uFEFF/,'').trim();
+  try{return JSON.parse(t);}catch(e){}
+  // algunos teclados y chats cambian las comillas rectas por curvas
+  try{return JSON.parse(t.replace(/[\u201C\u201D\u201E]/g,'"'));}catch(e){}
+  return null;
+}
+$('#bkLoad').onclick=()=>{
+  const raw=$('#bkBox').value.trim();
+  const o=bkParse(raw);
+  if(!o){
+    setStatus(raw.charAt(0)==='{'&&!/}\s*$/.test(raw)
+      ? 'El respaldo está incompleto: le falta el final. Pasa cuando se manda como texto largo por WhatsApp. Pide que te lo manden con «Compartir respaldo» (archivo).'
+      : 'Ese texto no es un respaldo válido.');
+    return;
+  }
+  try{
+    if(!o.state||!Array.isArray(o.state.channels)) throw 0;
+    state=o.state; learned=o.learned||{}; edCh=0;
+    if(state.mode!=='live') state.mode='own'; if(!state.progress||typeof state.progress!=='object') state.progress={}; if(!state.mix||typeof state.mix!=='object') state.mix={ptr:{},cur:null,runLeft:0}; if(typeof state.cc!=='boolean') state.cc=false; if(!['auto','sdk','iframe'].includes(state.fbMethod)) state.fbMethod='auto'; if(typeof state.fbApp!=='string') state.fbApp='';
+    if(!['auto','full','lite'].includes(state.fx)) state.fx='auto'; applyFx(curPlat);
+    $('#tv').dataset.mode=state.mode; $('#modeSel').value=state.mode; syncCC(); afterEdit(); setStatus('Respaldo restaurado.');
+  }catch(e){setStatus('Ese texto no es un respaldo válido.');}
+};
+
+if(location.protocol==='file:'){
+  $('#fileBanner').classList.add('show');
+  $('#bannerX').onclick=()=>$('#fileBanner').classList.remove('show');
+}
+
+$('#tv').dataset.mode=state.mode;
+updatePanel(); renderGuide(); applyFx('yt');
+setInterval(renderGuide,15000);
+setInterval(()=>{
+  if(!powered) return;
+  if(started) saveProgress();
+},5000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden) saveProgress();});
+addEventListener('pagehide',saveProgress);
+})();
+</script>
+</body>
+</html>
